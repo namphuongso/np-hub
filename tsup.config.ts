@@ -12,6 +12,7 @@ export default defineConfig([
     sourcemap: true,
     clean: true,
     minify: false,
+    target: "es2018",
     external: ["react", "react-dom"],
     loader: {
       ".png": "dataurl",
@@ -29,6 +30,7 @@ export default defineConfig([
     sourcemap: false,
     clean: false,
     minify: true,
+    target: "es2018",
     loader: {
       ".png": "dataurl",
       ".css": "text",

@@ -41,6 +41,12 @@ function capture(cmd, args) {
   return { status: res.status ?? 1, out: (res.stdout ?? "").trim() };
 }
 
+function isGitWorkingTreeClean() {
+  const status = capture("git", ["status", "--porcelain"]);
+  if (status.status !== 0) return true;
+  return status.out.length === 0;
+}
+
 const rl = createInterface({ input: stdin, output: stdout });
 
 async function askNumbered(question, options) {
@@ -99,7 +105,17 @@ async function main() {
     { key: "4", value: "skip" },
   ]);
   if (choice !== "skip") {
-    run("npm", ["version", choice]);
+    if (isGitWorkingTreeClean()) {
+      run("npm", ["version", choice]);
+    } else {
+      log(
+        `${C.yellow}Git working tree đang có thay đổi. Dùng --no-git-tag-version để vẫn bump version.${C.reset}`
+      );
+      run("npm", ["version", choice, "--no-git-tag-version"]);
+      log(
+        `${C.dim}Gợi ý: commit/tag thủ công sau khi publish nếu cần quản lý release theo git.${C.reset}`
+      );
+    }
   } else {
     log(`${C.dim}Giữ nguyên version.${C.reset}`);
   }
