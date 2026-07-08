@@ -1,4 +1,4 @@
-import { resolveBaseUrl } from "../core/config/resolve-base-url";
+import { resolveBaseUrl } from "../core/config/endpoints";
 import {
   validateSubmission,
   validateUser,
@@ -47,13 +47,7 @@ interface FormPrefillInput {
 }
 
 export class SupportWidgetElement extends HTMLElement {
-  static observedAttributes = [
-    "project-id",
-    "api-base-url",
-    "is-developer",
-    "width",
-    "height",
-  ];
+  static observedAttributes = ["project-id", "is-dev", "width", "height"];
 
   private config: SupportWidgetConfig = {
     projectId: "",
@@ -65,6 +59,7 @@ export class SupportWidgetElement extends HTMLElement {
   // Internal states for fields mapped behind the scenes
   private selectedFiles: File[] = [];
   private prefilledAttachments: string[] = [];
+  private previewUrls: string[] = [];
   private priority = 0;
   private coordinators: string[] = [];
   private emailContacts: string[] = [];
@@ -121,8 +116,7 @@ export class SupportWidgetElement extends HTMLElement {
   private syncConfigFromAttributes(): void {
     this.config = {
       projectId: this.getAttribute("project-id") ?? "",
-      baseUrl: this.getAttribute("api-base-url") ?? undefined,
-      isDeveloper: this.hasAttribute("is-developer"),
+      isDev: this.hasAttribute("is-dev"),
     };
   }
 
@@ -151,32 +145,102 @@ export class SupportWidgetElement extends HTMLElement {
     root
       .getElementById("submit-btn")
       ?.addEventListener("click", () => void this.submit());
-    root.getElementById("modal")?.addEventListener("click", (event) => {
-      if (event.target instanceof HTMLElement && event.target.id === "modal") {
-        this.close();
-      }
-    });
+
+    this.setupClearableInputs();
 
     // File selection UI handlers
     const uploadTrigger = root.getElementById("upload-trigger");
-    const fileInput = root.getElementById("file-input") as HTMLInputElement | null;
+    const fileInput = root.getElementById(
+      "file-input",
+    ) as HTMLInputElement | null;
 
     if (uploadTrigger && fileInput) {
       uploadTrigger.addEventListener("click", () => {
         fileInput.click();
       });
 
+      uploadTrigger.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      uploadTrigger.addEventListener("dragover", (e: DragEvent) => {
+        e.preventDefault();
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = "copy";
+        }
+        uploadTrigger.classList.add("dragover");
+      });
+
+      uploadTrigger.addEventListener("dragleave", () => {
+        uploadTrigger.classList.remove("dragover");
+      });
+
+      uploadTrigger.addEventListener("drop", (e: DragEvent) => {
+        e.preventDefault();
+        uploadTrigger.classList.remove("dragover");
+        if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+          this.addSelectedFiles(Array.from(e.dataTransfer.files));
+        }
+      });
+
       fileInput.addEventListener("change", () => {
         if (fileInput.files) {
-          Array.from(fileInput.files).forEach((file) => {
-            this.selectedFiles.push(file);
-          });
+          this.addSelectedFiles(Array.from(fileInput.files));
           // Reset file input value to allow selecting the same file again
           fileInput.value = "";
-          this.renderFileList();
         }
       });
     }
+
+    this.setupClipboardPaste();
+    this.setupPreviewControls();
+  }
+
+  private setupPreviewControls(): void {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const overlay = root.getElementById("preview-overlay");
+    root
+      .getElementById("preview-close")
+      ?.addEventListener("click", () => this.closePreview());
+
+    overlay?.addEventListener("click", (event) => {
+      if (event.target === overlay) this.closePreview();
+    });
+
+    root.addEventListener("keydown", (event) => {
+      if ((event as KeyboardEvent).key === "Escape") this.closePreview();
+    });
+  }
+
+  private setupClipboardPaste(): void {
+    const dialog = this.shadowRoot?.querySelector(".dialog");
+    if (!dialog) return;
+
+    dialog.addEventListener("paste", (event) => {
+      const clipboard = (event as ClipboardEvent).clipboardData;
+      if (!clipboard) return;
+
+      const files = Array.from(clipboard.items)
+        .filter((item: DataTransferItem) => item.kind === "file")
+        .map((item: DataTransferItem) => item.getAsFile())
+        .filter((file): file is File => file !== null);
+
+      if (files.length === 0) return;
+
+      event.preventDefault();
+      this.addSelectedFiles(files);
+    });
+  }
+
+  private addSelectedFiles(files: File[]): void {
+    if (files.length === 0) return;
+    this.selectedFiles.push(...files);
+    this.renderFileList();
   }
 
   private renderFileList(): void {
@@ -184,27 +248,49 @@ export class SupportWidgetElement extends HTMLElement {
     if (!fileListEl) return;
     fileListEl.innerHTML = "";
 
+    // Release object URLs created in the previous render to avoid leaks
+    this.previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.previewUrls = [];
+
     // Prefilled URLs
     this.prefilledAttachments.forEach((url, index) => {
-      const item = document.createElement("div");
-      item.className = "file-item";
       const name = url.substring(url.lastIndexOf("/") + 1) || url;
-      item.innerHTML = `
-        <span class="file-name" title="${url}">${name} (đã gán)</span>
-        <button type="button" class="btn-remove" data-type="prefilled" data-index="${index}">×</button>
-      `;
-      fileListEl.appendChild(item);
+      const isImage = this.isImageName(name);
+      const previewUrl = isImage ? url : null;
+      fileListEl.appendChild(
+        this.buildFileItem({
+          name,
+          title: url,
+          previewUrl,
+          type: "prefilled",
+          index,
+          isImage,
+          openUrl: url,
+          badge: "Đã gán",
+        }),
+      );
     });
 
     // Selected local files
     this.selectedFiles.forEach((file, index) => {
-      const item = document.createElement("div");
-      item.className = "file-item";
-      item.innerHTML = `
-        <span class="file-name" title="${file.name}">${file.name}</span>
-        <button type="button" class="btn-remove" data-type="selected" data-index="${index}">×</button>
-      `;
-      fileListEl.appendChild(item);
+      let previewUrl: string | null = null;
+      const isImage = file.type.startsWith("image/");
+      if (isImage) {
+        previewUrl = URL.createObjectURL(file);
+        this.previewUrls.push(previewUrl);
+      }
+      fileListEl.appendChild(
+        this.buildFileItem({
+          name: file.name,
+          title: file.name,
+          previewUrl,
+          type: "selected",
+          index,
+          isImage,
+          openUrl: null,
+          badge: null,
+        }),
+      );
     });
 
     // Hook remove event
@@ -221,6 +307,141 @@ export class SupportWidgetElement extends HTMLElement {
         this.renderFileList();
       });
     });
+  }
+
+  private buildFileItem(opts: {
+    name: string;
+    title: string;
+    previewUrl: string | null;
+    type: "prefilled" | "selected";
+    index: number;
+    isImage: boolean;
+    openUrl: string | null;
+    badge: string | null;
+  }): HTMLDivElement {
+    const item = document.createElement("div");
+    item.className = "file-item";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "file-preview-trigger";
+    trigger.title = "Nhấn để xem trước";
+    trigger.addEventListener("click", () => {
+      this.openPreview({
+        name: opts.title,
+        previewUrl: opts.previewUrl,
+        isImage: opts.isImage,
+        openUrl: opts.openUrl,
+      });
+    });
+
+    const thumb = document.createElement("div");
+    thumb.className = "file-thumb";
+    if (opts.previewUrl) {
+      const img = document.createElement("img");
+      img.src = opts.previewUrl;
+      img.alt = opts.name;
+      // Fall back to a file icon if the image fails to load
+      img.addEventListener("error", () => this.fillWithFileIcon(thumb));
+      thumb.appendChild(img);
+    } else {
+      this.fillWithFileIcon(thumb);
+    }
+
+    const infoContainer = document.createElement("div");
+    infoContainer.className = "file-info-container";
+
+    const name = document.createElement("span");
+    name.className = "file-name";
+    name.title = opts.title;
+    name.textContent = opts.name;
+
+    infoContainer.appendChild(name);
+    trigger.append(thumb, infoContainer);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn-remove";
+    removeBtn.setAttribute("aria-label", "Xóa tệp");
+    removeBtn.setAttribute("data-type", opts.type);
+    removeBtn.setAttribute("data-index", String(opts.index));
+    removeBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    `;
+
+    item.append(trigger, removeBtn);
+
+    if (opts.badge) {
+      const badge = document.createElement("span");
+      badge.className = "file-badge";
+      badge.textContent = opts.badge;
+      item.appendChild(badge);
+    }
+
+    return item;
+  }
+
+  private fillWithFileIcon(thumb: HTMLElement): void {
+    thumb.innerHTML = "";
+    thumb.classList.add("file-thumb--icon");
+    thumb.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+      </svg>`;
+  }
+
+  private openPreview(opts: {
+    name: string;
+    previewUrl: string | null;
+    isImage: boolean;
+    openUrl: string | null;
+  }): void {
+    const overlay = this.shadowRoot?.getElementById("preview-overlay");
+    const body = this.shadowRoot?.getElementById("preview-body");
+    if (!overlay || !body) return;
+
+    body.innerHTML = "";
+
+    if (opts.isImage && opts.previewUrl) {
+      const img = document.createElement("img");
+      img.src = opts.previewUrl;
+      img.alt = opts.name;
+      body.appendChild(img);
+    } else {
+      const info = document.createElement("div");
+      info.className = "preview-file";
+      const openLink = opts.openUrl
+        ? `<a href="${opts.openUrl}" target="_blank" rel="noopener noreferrer">Mở trong tab mới</a>`
+        : `<span>Không có bản xem trước cho tệp này</span>`;
+      info.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        <span class="preview-file-name"></span>
+        ${openLink}`;
+      const nameEl = info.querySelector(".preview-file-name");
+      if (nameEl) nameEl.textContent = opts.name;
+      body.appendChild(info);
+    }
+
+    overlay.classList.add("show");
+  }
+
+  private closePreview(): void {
+    const overlay = this.shadowRoot?.getElementById("preview-overlay");
+    if (!overlay) return;
+    overlay.classList.remove("show");
+    const body = this.shadowRoot?.getElementById("preview-body");
+    if (body) body.innerHTML = "";
+  }
+
+  private isImageName(name: string): boolean {
+    return /\.(png|jpe?g|gif|webp|bmp|svg|avif)$/i.test(name);
   }
 
   private prefillFromState(): void {
@@ -248,6 +469,42 @@ export class SupportWidgetElement extends HTMLElement {
     return /^\d+(\.\d+)?$/.test(trimmed) ? `${trimmed}px` : trimmed;
   }
 
+  private setupClearableInputs(): void {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    root.querySelectorAll(".input-wrap").forEach((wrap) => {
+      const input = wrap.querySelector("input, textarea") as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | null;
+      const clearBtn = wrap.querySelector(
+        ".btn-clear",
+      ) as HTMLButtonElement | null;
+      if (!input || !clearBtn) return;
+
+      const updateVisibility = () => this.updateClearButton(input);
+
+      input.addEventListener("input", updateVisibility);
+      clearBtn.addEventListener("click", () => {
+        input.value = "";
+        input.focus();
+        updateVisibility();
+      });
+
+      updateVisibility();
+    });
+  }
+
+  private updateClearButton(
+    input: HTMLInputElement | HTMLTextAreaElement,
+  ): void {
+    const wrap = input.parentElement;
+    if (wrap?.classList.contains("input-wrap")) {
+      wrap.classList.toggle("has-value", input.value.length > 0);
+    }
+  }
+
   private setInputValue(id: string, value: string): void {
     const el = this.shadowRoot?.getElementById(id) as
       | HTMLInputElement
@@ -255,6 +512,7 @@ export class SupportWidgetElement extends HTMLElement {
       | null;
     if (!el) return;
     el.value = value;
+    this.updateClearButton(el);
   }
 
   private getInputValue(id: string): string {
@@ -311,8 +569,12 @@ export class SupportWidgetElement extends HTMLElement {
       }
 
       // Add coordinators and emailContacts
-      this.coordinators.forEach((coord) => formData.append("Coordinators", coord));
-      this.emailContacts.forEach((contact) => formData.append("EmailContacts", contact));
+      this.coordinators.forEach((coord) =>
+        formData.append("Coordinators", coord),
+      );
+      this.emailContacts.forEach((contact) =>
+        formData.append("EmailContacts", contact),
+      );
 
       const baseUrl = resolveBaseUrl(this.config);
       const result = await createSupportRequest(baseUrl, formData);
@@ -334,7 +596,6 @@ export class SupportWidgetElement extends HTMLElement {
       );
     }
   }
-
 
   private setupDrag(launcher: HTMLElement): void {
     launcher.addEventListener("pointerdown", (e: PointerEvent) => {

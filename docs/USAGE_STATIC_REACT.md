@@ -2,6 +2,8 @@
 
 Tài liệu này dành cho các team tích hợp `@namphuongtechnologi/np-hub`.
 
+Phiên bản rút gọn cho npm: xem `README.md` ở root repo.
+
 ## Tổng quan UI
 
 Widget hiển thị dưới dạng **nút tròn nổi** ở góc dưới bên phải. Khi người dùng nhấn vào nút, **modal form** mở ra để điền thông tin và gửi yêu cầu hỗ trợ.
@@ -16,56 +18,82 @@ Website tích hợp có thể truyền dữ liệu sẵn qua `setUser()` và `se
 npm install @namphuongtechnologi/np-hub
 ```
 
-## A) Tích hợp với HTML tĩnh
+---
 
-### Cách 1: Dùng artifact sau khi build từ NPM
+## A) Tích hợp web tĩnh (HTML)
 
-Sau khi build, host file `dist/np-hub.min.global.js` lên CDN của bạn.
+### Bước 1 — Lấy file bundle
 
-```html
-<script src="https://cdn.example.com/np-hub.min.global.js"></script>
+Sau khi cài package:
 
-<np-hub project-id="NPP"></np-hub>
-
-<script>
-  const widget = document.querySelector("np-hub");
-
-  widget.setUser({
-    name: "Nguyen Van A",
-    email: "a@gmail.com",
-    phoneNumber: "0912345678"
-  });
-
-  widget.setFormPrefill({
-    content: "Mô tả sự cố cần hỗ trợ...",
-    attachments: ["https://files.example.com/attachment-1.png"],
-    priority: 0,
-    coordinators: [],
-    emailContacts: []
-  });
-
-  widget.addEventListener("np-hub-submit-success", (event) => {
-    console.log("Tạo yêu cầu thành công:", event.detail);
-  });
-
-  widget.addEventListener("np-hub-submit-error", (event) => {
-    console.error("Lỗi gửi yêu cầu:", event.detail);
-  });
-</script>
+```
+node_modules/@namphuongtechnologi/np-hub/dist/np-hub.min.global.js
 ```
 
-### Cách 2: Host static nội bộ
+Host file lên CDN hoặc static server. Ví dụ dev local: `examples/static-html/index.html`.
 
-Copy bundle đã tạo vào static assets và nhúng bằng URL tương đối. Ví dụ đầy đủ có tại `examples/static-html/index.html`.
+### Bước 2 — Nhúng vào trang
 
-## B) Tích hợp với React
+```html
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NP Hub</title>
+  </head>
+  <body>
+    <np-hub project-id="NPP" is-dev></np-hub>
+
+    <script src="https://cdn.example.com/np-hub.min.global.js"></script>
+    <script>
+      const widget = document.querySelector("np-hub");
+
+      widget.setUser({
+        name: "Nguyen Van A",
+        email: "a@gmail.com",
+        phoneNumber: "0912345678",
+      });
+
+      widget.setFormPrefill({
+        content: "Mô tả sự cố cần hỗ trợ...",
+        attachments: ["https://files.example.com/attachment-1.png"],
+        priority: 0,
+        coordinators: [],
+        emailContacts: [],
+      });
+
+      widget.addEventListener("np-hub-submit-success", (event) => {
+        console.log("Tạo yêu cầu thành công:", event.detail);
+      });
+
+      widget.addEventListener("np-hub-submit-error", (event) => {
+        console.error("Lỗi gửi yêu cầu:", event.detail);
+      });
+    </script>
+  </body>
+</html>
+```
+
+---
+
+## B) Tích hợp React
+
+### Import
+
+```ts
+import "@namphuongtechnologi/np-hub/widget";
+```
+
+### Component host
 
 ```tsx
 import { useEffect, useRef } from "react";
+import type { SupportWidgetElement } from "@namphuongtechnologi/np-hub";
 import "@namphuongtechnologi/np-hub/widget";
 
 export function SupportWidgetHost() {
-  const ref = useRef<any>(null);
+  const ref = useRef<SupportWidgetElement>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -74,7 +102,7 @@ export function SupportWidgetHost() {
     el.setUser({
       name: "Nguyen Van A",
       email: "a@gmail.com",
-      phoneNumber: "0912345678"
+      phoneNumber: "0912345678",
     });
 
     el.setFormPrefill({
@@ -82,7 +110,7 @@ export function SupportWidgetHost() {
       attachments: ["https://files.example.com/attachment-1.png"],
       priority: 0,
       coordinators: [],
-      emailContacts: []
+      emailContacts: [],
     });
 
     const onSuccess = (event: Event) => {
@@ -104,23 +132,46 @@ export function SupportWidgetHost() {
     <np-hub
       ref={ref}
       project-id="NPP"
-      is-developer
+      is-dev
     />
   );
 }
 ```
 
+### TypeScript JSX (tuỳ chọn)
+
+```ts
+import type { SupportWidgetElement } from "@namphuongtechnologi/np-hub";
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "np-hub": React.DetailedHTMLProps<
+        React.HTMLAttributes<SupportWidgetElement>,
+        SupportWidgetElement
+      > & {
+        "project-id"?: string;
+        "is-dev"?: boolean;
+        width?: string | number;
+        height?: string | number;
+      };
+    }
+  }
+}
+```
+
+---
+
 ## C) Cấu hình
 
-- `project-id` (bắt buộc)
-- `api-base-url` (tùy chọn, ưu tiên cao nhất)
-- `is-developer` (tùy chọn, chuyển sang API Development)
-- `width` (tùy chọn, kích thước nút nổi; số hiểu là `px`; mặc định `72px`)
-- `height` (tùy chọn, kích thước nút nổi; mặc định `72px`)
+| Attribute | Bắt buộc | Mô tả |
+|---|---|---|
+| `project-id` | Có | Mã dự án |
+| `is-dev` | Không | Boolean — dùng API Development; mặc định là Production |
+| `width` | Không | Kích thước nút nổi (mặc định `72px`) |
+| `height` | Không | Kích thước nút nổi (mặc định `72px`) |
 
-Thứ tự ưu tiên API: `api-base-url` > `is-developer` > mặc định Production.
-
-Logo nút nổi được nhúng sẵn trong thư viện, không cấu hình từ bên ngoài. Vị trí mặc định là góc dưới bên phải; dùng `width`/`height` để chỉnh kích thước cho phù hợp với web.
+URL API cố định trong thư viện: Production `https://namphuong-api.azurewebsites.net`, Development `https://namphuong-api-dev.azurewebsites.net`.
 
 ## D) Public methods
 
@@ -134,30 +185,20 @@ Logo nút nổi được nhúng sẵn trong thư viện, không cấu hình từ
 | Trường | Kiểu | Mô tả |
 |---|---|---|
 | `content` | `string` | Nội dung yêu cầu |
-| `attachments` | `string[]` | Danh sách file đính kèm (URL hoặc đường dẫn) |
+| `attachments` | `string[]` | URL file đính kèm gán sẵn |
 | `priority` | `number` | Mức ưu tiên, mặc định `0` |
 | `coordinators` | `string[]` | Danh sách coordinator |
 | `emailContacts` | `string[]` | Danh sách email liên hệ |
 
-## E) Form và payload API
+## E) Form và gửi API
 
-Widget **không có UI upload file**. Trường `Attachments` nhận danh sách string do website truyền vào hoặc người dùng nhập trực tiếp (mỗi giá trị trên một dòng, hoặc JSON array).
+Widget gửi `multipart/form-data` tới:
 
-Payload gửi lên API:
-
-```json
-{
-  "Requester": "Nguyen Van A",
-  "PhoneNumber": "0912345678",
-  "Email": "a@gmail.com",
-  "Content": "Mô tả sự cố...",
-  "ProjectId": "NPP",
-  "Priority": 0,
-  "Attachments": ["https://files.example.com/attachment-1.png"],
-  "Coordinators": [],
-  "EmailContacts": []
-}
 ```
+POST {baseUrl}/api/supportcenter/create-request-anonymous
+```
+
+Người dùng có thể upload file trực tiếp trên form. Website cũng có thể gán URL sẵn qua `setFormPrefill({ attachments })`.
 
 ## F) Sự kiện
 
@@ -169,7 +210,7 @@ Payload gửi lên API:
 ## G) Xử lý sự cố
 
 - Lỗi `projectId is required.`: kiểm tra đã truyền `project-id`.
-- Lỗi `user.name is required.`, `user.email is required.`, hoặc `user.phoneNumber is required.`: gọi `setUser(...)` hoặc để người dùng nhập đủ thông tin người gửi trước khi submit.
-- Lỗi `Content is required.`: người dùng cần nhập nội dung yêu cầu trước khi submit.
-- Gọi API thất bại: kiểm tra `api-base-url` hoặc cấu hình `is-developer`.
-- Nút hiển thị quá to/nhỏ: dùng `width`/`height` để điều chỉnh kích thước nút cho phù hợp với layout.
+- Lỗi `user.name/email/phoneNumber is required.`: gọi `setUser(...)` hoặc để người dùng nhập đủ.
+- Lỗi `Content is required.`: người dùng cần nhập nội dung trước khi submit.
+- Gọi API thất bại: kiểm tra `is-dev` nếu đang test môi trường Development.
+- Nút quá to/nhỏ: dùng `width`/`height`.

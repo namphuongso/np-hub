@@ -6,8 +6,7 @@ export interface SupportUser {
 
 export interface SupportWidgetConfig {
   projectId: string;
-  baseUrl?: string;
-  isDeveloper?: boolean;
+  isDev?: boolean;
 }
 
 export interface SupportSubmissionInput {

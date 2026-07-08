@@ -18,7 +18,7 @@ Tài liệu này giúp dev mới có thể bắt đầu đóng góp nhanh cho `@
 
 ## 3) Cấu trúc thư mục
 
-- `src/core`: nghiệp vụ chính (config/validation/mapping)
+- `src/core`: nghiệp vụ chính (config/validation)
 - `src/services`: API và side effects
 - `src/component`: UI của web component và vòng đời sự kiện
 - `src/types`: kiểu dữ liệu public
@@ -48,10 +48,9 @@ npm run typecheck
 ## 6) Quy tắc code
 
 - Không đặt logic map API trực tiếp trong handler UI.
-- Giữ logic resolve config tại `src/core/config`.
-- Giữ logic map payload tại `src/core/mapping` và validate tại `src/core/validation`.
+- Giữ logic resolve config tại `src/core/config` và validate tại `src/core/validation`.
 - UI widget (`src/component`) chỉ xử lý launcher, modal form, prefill và emit event.
-- Widget không có UI upload file; `Attachments` là danh sách string truyền qua form.
+- Widget hỗ trợ upload file trên form và gán URL qua `setFormPrefill`.
 - Chỉ emit các public event đã được tài liệu hóa.
 - Giữ backward compatibility cho public contract, trừ khi bump major.
 
@@ -72,17 +71,16 @@ npm run typecheck
 
 ### Attributes
 
-- `project-id`, `api-base-url`, `is-developer`, `width`, `height`
+- `project-id`, `is-dev`, `width`, `height`
 
 Logo nút nổi được nhúng sẵn trong bundle (`src/component/assets/np-support-logo.png`, đóng gói dưới dạng data URL khi build), không nhận cấu hình từ ngoài.
 
-## 8) Quy tắc chọn cấu hình API
+## 8) Quy tắc chọn API
 
-Thứ tự ưu tiên:
+URL API cố định tại `src/core/config/endpoints.ts`:
 
-1. attribute `api-base-url`
-2. attribute `is-developer`
-3. URL Production mặc định
+- Không có `is-dev` → Production
+- Có `is-dev` → Development
 
 ## 9) Checklist trước khi merge
 
