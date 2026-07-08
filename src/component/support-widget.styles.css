@@ -12,13 +12,17 @@
   height: var(--np-hub-height, 72px);
   border: none;
   border-radius: 50%;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
   background-color: #ffffff;
   background-image: var(--np-hub-icon);
   background-position: center;
   background-repeat: no-repeat;
   background-size: 75%;
+}
+
+.launcher:active {
+  cursor: grabbing;
 }
 
 .modal {

@@ -48,6 +48,7 @@ export class SupportWidgetElement extends HTMLElement {
   };
 
   private user?: SupportUser;
+  private dragOccurred = false;
 
   constructor() {
     super();
@@ -60,6 +61,12 @@ export class SupportWidgetElement extends HTMLElement {
     this.syncConfigFromAttributes();
     this.prefillFromState();
     this.applyLauncherStyle();
+    this.restorePosition();
+    window.addEventListener("resize", this.handleResize);
+  }
+
+  disconnectedCallback(): void {
+    window.removeEventListener("resize", this.handleResize);
   }
 
   attributeChangedCallback(): void {
@@ -103,9 +110,18 @@ export class SupportWidgetElement extends HTMLElement {
     const root = this.shadowRoot;
     if (!root) return;
 
-    root
-      .getElementById("open-btn")
-      ?.addEventListener("click", () => this.open());
+    const launcher = root.getElementById("open-btn");
+    if (launcher) {
+      launcher.addEventListener("click", () => {
+        if (this.dragOccurred) {
+          this.dragOccurred = false;
+          return;
+        }
+        this.open();
+      });
+      this.setupDrag(launcher);
+    }
+
     root
       .getElementById("close-btn")
       ?.addEventListener("click", () => this.close());
@@ -241,4 +257,108 @@ export class SupportWidgetElement extends HTMLElement {
       );
     }
   }
+
+  private setupDrag(launcher: HTMLElement): void {
+    launcher.addEventListener("pointerdown", (e: PointerEvent) => {
+      if (e.button !== 0) return;
+
+      this.dragOccurred = false;
+      const rect = this.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const initialLeft = rect.left;
+      const initialTop = rect.top;
+
+      try {
+        launcher.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore if pointer capture fails
+      }
+
+      const onPointerMove = (moveEvent: PointerEvent) => {
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+
+        if (!this.dragOccurred && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+          this.dragOccurred = true;
+          launcher.style.cursor = "grabbing";
+        }
+
+        if (this.dragOccurred) {
+          const leftVal = initialLeft + dx;
+          const topVal = initialTop + dy;
+          this.adjustPosition(leftVal, topVal);
+        }
+      };
+
+      const onPointerUp = (upEvent: PointerEvent) => {
+        try {
+          launcher.releasePointerCapture(upEvent.pointerId);
+        } catch {
+          // ignore
+        }
+        launcher.removeEventListener("pointermove", onPointerMove);
+        launcher.removeEventListener("pointerup", onPointerUp);
+        launcher.removeEventListener("pointercancel", onPointerUp);
+        launcher.style.cursor = "";
+
+        if (this.dragOccurred) {
+          localStorage.setItem(
+            "np-hub-widget-position",
+            JSON.stringify({
+              left: this.style.left,
+              top: this.style.top,
+            }),
+          );
+        }
+      };
+
+      launcher.addEventListener("pointermove", onPointerMove);
+      launcher.addEventListener("pointerup", onPointerUp);
+      launcher.addEventListener("pointercancel", onPointerUp);
+    });
+  }
+
+  private adjustPosition(leftVal: number, topVal: number): void {
+    const rect = this.getBoundingClientRect();
+    const width = rect.width || 72;
+    const height = rect.height || 72;
+
+    const minLeft = 0;
+    const maxLeft = window.innerWidth - width;
+    const minTop = 0;
+    const maxTop = window.innerHeight - height;
+
+    const clampedLeft = Math.max(minLeft, Math.min(maxLeft, leftVal));
+    const clampedTop = Math.max(minTop, Math.min(maxTop, topVal));
+
+    this.style.right = "auto";
+    this.style.bottom = "auto";
+    this.style.left = `${clampedLeft}px`;
+    this.style.top = `${clampedTop}px`;
+  }
+
+  private restorePosition(): void {
+    const savedPosition = localStorage.getItem("np-hub-widget-position");
+    if (savedPosition) {
+      try {
+        const { left, top } = JSON.parse(savedPosition);
+        if (left && top) {
+          const leftVal = parseFloat(left);
+          const topVal = parseFloat(top);
+          this.adjustPosition(leftVal, topVal);
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+  }
+
+  private handleResize = (): void => {
+    if (this.style.left && this.style.top) {
+      const leftVal = parseFloat(this.style.left);
+      const topVal = parseFloat(this.style.top);
+      this.adjustPosition(leftVal, topVal);
+    }
+  };
 }
