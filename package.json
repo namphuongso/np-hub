@@ -1,0 +1,57 @@
+{
+  "name": "@namphuongtechnologi/np-hub",
+  "version": "0.1.0",
+  "description": "NP Hub Web Component toolkit for support flows.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./widget": {
+      "types": "./dist/register.d.ts",
+      "import": "./dist/register.js",
+      "require": "./dist/register.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "docs"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "keywords": [
+    "web-component",
+    "np-hub",
+    "support-widget",
+    "sdk",
+    "custom-element"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "dotenv": "^17.4.2",
+    "eslint": "^9.31.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.8"
+  }
+}
