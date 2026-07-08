@@ -66,7 +66,7 @@
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
-  padding: 28px 32px 32px;
+  padding: 28px 28px 26px;
   box-sizing: border-box;
   position: relative;
   transform: translateY(24px) scale(0.98);
@@ -90,15 +90,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 18px;
-  margin-bottom: 22px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--np-border);
   position: relative;
 }
 
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--np-primary);
   text-align: center;
@@ -138,13 +138,17 @@
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+}
+
+.field-error {
+  display: none;
 }
 
 .field.full {
@@ -152,7 +156,7 @@
 }
 
 label {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #334155;
 }
@@ -169,7 +173,7 @@ textarea {
   border: 1px solid #d5dde7;
   border-radius: 10px;
   font-size: 14px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   color: var(--np-text);
   outline: none;
   font-family: inherit;
@@ -181,7 +185,7 @@ textarea {
 }
 
 textarea {
-  min-height: 120px;
+  min-height: 100px;
   resize: vertical;
   line-height: 1.5;
 }
@@ -201,6 +205,18 @@ textarea:focus {
   border-color: var(--np-primary);
   background: #ffffff;
   box-shadow: 0 0 0 4px var(--np-primary-soft);
+}
+
+.input-wrap.has-error input,
+.input-wrap.has-error textarea {
+  border-color: #e45b5b;
+  background: #ffffff;
+}
+
+.input-wrap.has-error input:focus,
+.input-wrap.has-error textarea:focus {
+  border-color: #e45b5b;
+  box-shadow: 0 0 0 3px rgba(228, 91, 91, 0.14);
 }
 
 .input-wrap {
@@ -261,7 +277,7 @@ textarea:focus {
   gap: 16px;
   background: #f8fafc;
   border: 1.5px dashed #cbd5e1;
-  padding: 16px 20px;
+  padding: 16px 16px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -332,7 +348,7 @@ textarea:focus {
 }
 
 .file-list {
-  margin-top: 14px;
+  margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 12px;
@@ -599,15 +615,19 @@ textarea:focus {
 }
 
 .actions {
-  margin-top: 28px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
+.submit-feedback {
+  display: none;
+}
+
 .btn {
   border-radius: 10px;
-  padding: 12px 26px;
+  padding: 10px 22px;
   font-size: 15px;
   font-weight: 600;
   font-family: inherit;

@@ -22,7 +22,8 @@ npm install @namphuongtechnologi/np-hub
 import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
 
 // Đặt một lần trong App.tsx / main.tsx / root layout
-<SupportWidget projectId="NPP" user={{ name: "...", email: "...", phoneNumber: "..." }} />
+{/* user/formPrefill optional khi config; trên form vẫn bắt buộc nhập */}
+<SupportWidget projectId="NPP" />
 ```
 
 Xem `README.md` để biết đầy đủ props và callback.

@@ -4,8 +4,10 @@ export interface SupportUser {
   phoneNumber: string;
 }
 
+export type SupportUserPrefill = Partial<SupportUser>;
+
 export interface SupportWidgetConfig {
-  projectId: string;
+  projectId?: string;
   isDev?: boolean;
   priority?: number;
   coordinators?: string[];
@@ -22,9 +24,9 @@ export interface SupportRequestPayload {
   PhoneNumber: string;
   Email: string;
   Content: string;
-  ProjectId: string;
-  Priority: number;
-  Attachments: string[];
-  Coordinators: string[];
-  EmailContacts: string[];
+  ProjectId?: string;
+  Priority?: number;
+  Attachments?: string[];
+  Coordinators?: string[];
+  EmailContacts?: string[];
 }

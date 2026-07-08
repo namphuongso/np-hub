@@ -5,8 +5,8 @@ import type {
 } from "../../types/public";
 
 export function validateWidgetConfig(config: SupportWidgetConfig): void {
-  if (!config.projectId || config.projectId.trim().length === 0) {
-    throw new Error("projectId is required.");
+  if (config.projectId !== undefined && config.projectId.trim().length === 0) {
+    throw new Error("projectId cannot be empty.");
   }
 }
 

@@ -8,6 +8,7 @@ import { createSupportRequest } from "../services/api/support-api";
 import type {
   SupportSubmissionInput,
   SupportUser,
+  SupportUserPrefill,
   SupportWidgetConfig,
 } from "../types/public";
 import { WIDGET_EVENTS } from "./events/widget-events";
@@ -43,21 +44,24 @@ interface FormPrefillInput {
   attachments?: string[];
 }
 
+type RequiredFieldId = "requester" | "phone-number" | "email" | "content";
+
 export class SupportWidgetElement extends HTMLElement {
   static observedAttributes = ["project-id", "is-dev", "width", "height"];
 
   private config: SupportWidgetConfig = {
-    projectId: "",
+    projectId: undefined,
   };
 
-  private user?: SupportUser;
+  private user?: SupportUserPrefill;
   private dragOccurred = false;
 
   // Internal states for fields mapped behind the scenes
   private selectedFiles: File[] = [];
   private prefilledAttachments: string[] = [];
   private previewUrls: string[] = [];
-  public priority = 0;
+  private closeAfterSuccessTimer: number | null = null;
+  public priority: number | undefined;
   public coordinators: string[] = [];
   public emailContacts: string[] = [];
 
@@ -78,6 +82,7 @@ export class SupportWidgetElement extends HTMLElement {
 
   disconnectedCallback(): void {
     window.removeEventListener("resize", this.handleResize);
+    this.clearCloseAfterSuccessTimer();
   }
 
   attributeChangedCallback(): void {
@@ -86,7 +91,7 @@ export class SupportWidgetElement extends HTMLElement {
     this.applyLauncherStyle();
   }
 
-  setUser(user: SupportUser): void {
+  setUser(user: SupportUserPrefill): void {
     this.user = user;
     this.prefillFromState();
   }
@@ -129,6 +134,8 @@ export class SupportWidgetElement extends HTMLElement {
   }
 
   close(): void {
+    this.clearCloseAfterSuccessTimer();
+    this.resetFormData();
     this.shadowRoot?.getElementById("modal")?.classList.remove("show");
     this.dispatchEvent(new CustomEvent(WIDGET_EVENTS.CLOSE, { bubbles: true }));
   }
@@ -507,10 +514,12 @@ export class SupportWidgetElement extends HTMLElement {
       const updateVisibility = () => this.updateClearButton(input);
 
       input.addEventListener("input", updateVisibility);
+      input.addEventListener("input", () => this.clearFieldError(input.id));
       clearBtn.addEventListener("click", () => {
         input.value = "";
         input.focus();
         updateVisibility();
+        this.clearFieldError(input.id);
       });
 
       updateVisibility();
@@ -544,8 +553,134 @@ export class SupportWidgetElement extends HTMLElement {
     return el?.value?.trim() ?? "";
   }
 
+  private setFieldError(id: RequiredFieldId): void {
+    const errorEl = this.shadowRoot?.getElementById(`${id}-error`);
+    if (errorEl) {
+      errorEl.textContent = "";
+    }
+
+    const input = this.shadowRoot?.getElementById(id) as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+    const wrap = input?.parentElement;
+    if (wrap?.classList.contains("input-wrap")) {
+      wrap.classList.add("has-error");
+    }
+  }
+
+  private clearFieldError(id: string): void {
+    const errorEl = this.shadowRoot?.getElementById(`${id}-error`);
+    if (errorEl) {
+      errorEl.textContent = "";
+    }
+
+    const input = this.shadowRoot?.getElementById(id) as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+    const wrap = input?.parentElement;
+    if (wrap?.classList.contains("input-wrap")) {
+      wrap.classList.remove("has-error");
+    }
+  }
+
+  private clearAllFieldErrors(): void {
+    this.clearFieldError("requester");
+    this.clearFieldError("phone-number");
+    this.clearFieldError("email");
+    this.clearFieldError("content");
+  }
+
+  private setSubmitFeedback(
+    type: "success" | "error",
+    message: string,
+  ): void {
+    const feedbackEl = this.shadowRoot?.getElementById("submit-feedback");
+    if (!feedbackEl) return;
+
+    feedbackEl.textContent = message;
+    feedbackEl.classList.remove("success", "error");
+    feedbackEl.classList.add(type, "show");
+  }
+
+  private clearSubmitFeedback(): void {
+    const feedbackEl = this.shadowRoot?.getElementById("submit-feedback");
+    if (!feedbackEl) return;
+
+    feedbackEl.textContent = "";
+    feedbackEl.classList.remove("success", "error", "show");
+  }
+
+  private clearCloseAfterSuccessTimer(): void {
+    if (this.closeAfterSuccessTimer !== null) {
+      window.clearTimeout(this.closeAfterSuccessTimer);
+      this.closeAfterSuccessTimer = null;
+    }
+  }
+
+  private validateRequiredFields(): boolean {
+    this.clearAllFieldErrors();
+
+    const requiredFields: RequiredFieldId[] = [
+      "requester",
+      "phone-number",
+      "email",
+      "content",
+    ];
+
+    let firstInvalidId: RequiredFieldId | null = null;
+
+    requiredFields.forEach((id) => {
+      if (!this.getInputValue(id)) {
+        this.setFieldError(id);
+        if (!firstInvalidId) {
+          firstInvalidId = id;
+        }
+      }
+    });
+
+    if (firstInvalidId) {
+      const firstInvalid = this.shadowRoot?.getElementById(firstInvalidId) as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | null;
+      firstInvalid?.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  private resetFormData(): void {
+    this.setInputValue("requester", "");
+    this.setInputValue("email", "");
+    this.setInputValue("phone-number", "");
+    this.setInputValue("content", "");
+    this.clearAllFieldErrors();
+    this.clearSubmitFeedback();
+
+    this.selectedFiles = [];
+    this.prefilledAttachments = [];
+    this.renderFileList();
+    this.closePreview();
+  }
+
   private async submit(): Promise<void> {
     try {
+      this.clearCloseAfterSuccessTimer();
+      this.clearSubmitFeedback();
+
+      if (!this.validateRequiredFields()) {
+        this.dispatchEvent(
+          new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
+            bubbles: true,
+            detail: { message: "Please fill in all required fields." },
+          }),
+        );
+        return;
+      }
+
       const user: SupportUser = {
         name: this.getInputValue("requester"),
         email: this.getInputValue("email"),
@@ -570,8 +705,12 @@ export class SupportWidgetElement extends HTMLElement {
       formData.append("PhoneNumber", user.phoneNumber);
       formData.append("Email", user.email);
       formData.append("Content", content);
-      formData.append("ProjectId", this.config.projectId);
-      formData.append("Priority", String(this.priority));
+      if (this.config.projectId?.trim()) {
+        formData.append("ProjectId", this.config.projectId.trim());
+      }
+      if (typeof this.priority === "number") {
+        formData.append("Priority", String(this.priority));
+      }
 
       // Fetch prefilled attachments and convert them to Files
       for (const url of this.prefilledAttachments) {
@@ -587,12 +726,16 @@ export class SupportWidgetElement extends HTMLElement {
       }
 
       // Add coordinators and emailContacts
-      this.coordinators.forEach((coord) =>
-        formData.append("Coordinators", coord),
-      );
-      this.emailContacts.forEach((contact) =>
-        formData.append("EmailContacts", contact),
-      );
+      if (this.coordinators.length > 0) {
+        this.coordinators.forEach((coord) =>
+          formData.append("Coordinators", coord),
+        );
+      }
+      if (this.emailContacts.length > 0) {
+        this.emailContacts.forEach((contact) =>
+          formData.append("EmailContacts", contact),
+        );
+      }
 
       const baseUrl = resolveBaseUrl(this.config);
       const result = await createSupportRequest(baseUrl, formData);
@@ -603,7 +746,9 @@ export class SupportWidgetElement extends HTMLElement {
           detail: result,
         }),
       );
-      this.close();
+      this.closeAfterSuccessTimer = window.setTimeout(() => {
+        this.close();
+      }, 1200);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       this.dispatchEvent(

@@ -5,5 +5,6 @@ export type {
   SupportRequestPayload,
   SupportSubmissionInput,
   SupportUser,
-  SupportWidgetConfig
+  SupportUserPrefill,
+  SupportWidgetConfig,
 } from "./types/public";

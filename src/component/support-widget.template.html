@@ -26,6 +26,7 @@
           <input id="requester" type="text" placeholder="Họ và tên" />
           <button type="button" class="btn-clear" aria-label="Xóa">×</button>
         </div>
+        <p id="requester-error" class="field-error" aria-live="polite"></p>
       </div>
 
       <div class="field">
@@ -36,6 +37,7 @@
           <input id="phone-number" type="text" placeholder="Số điện thoại" />
           <button type="button" class="btn-clear" aria-label="Xóa">×</button>
         </div>
+        <p id="phone-number-error" class="field-error" aria-live="polite"></p>
       </div>
 
       <div class="field full">
@@ -44,6 +46,7 @@
           <input id="email" type="email" placeholder="Email" />
           <button type="button" class="btn-clear" aria-label="Xóa">×</button>
         </div>
+        <p id="email-error" class="field-error" aria-live="polite"></p>
       </div>
 
       <div class="field full">
@@ -55,6 +58,7 @@
           ></textarea>
           <button type="button" class="btn-clear" aria-label="Xóa">×</button>
         </div>
+        <p id="content-error" class="field-error" aria-live="polite"></p>
       </div>
 
       <div class="field full">
@@ -106,6 +110,8 @@
         <div id="preview-body" class="preview-body"></div>
       </div>
     </div>
+
+    <p id="submit-feedback" class="submit-feedback" aria-live="polite"></p>
 
     <div class="actions">
       <button id="cancel-btn" class="btn btn-secondary" type="button">
