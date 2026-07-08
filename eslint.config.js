@@ -25,8 +25,25 @@ export default [
     }
   },
   {
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off"
-    }
-  }
+    files: ["examples/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+      globals: {
+        document: "readonly",
+        console: "readonly",
+      },
+    },
+  },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        process: "readonly",
+        console: "readonly",
+      },
+    },
+  },
 ];

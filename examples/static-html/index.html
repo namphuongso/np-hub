@@ -1,35 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NP Hub Example</title>
   </head>
   <body>
-    <np-hub project-id="NPP" is-dev></np-hub>
-
-    <script src="../../dist/np-hub.min.global.js"></script>
-    <script>
-      const widget = document.querySelector("np-hub");
-      widget.setUser({
-        name: "Nguyen Van A",
-        email: "a@gmail.com",
-        phoneNumber: "0912345678",
-      });
-      widget.setFormPrefill({
-        content: "Mô tả sự cố cần hỗ trợ...",
-        attachments: ["https://files.example.com/attachment-1.png"],
-        priority: 0,
-        coordinators: [],
-        emailContacts: [],
-      });
-
-      widget.addEventListener("np-hub-submit-success", (event) => {
-        console.log("Request created", event.detail);
-      });
-      widget.addEventListener("np-hub-submit-error", (event) => {
-        console.error("Submit failed", event.detail);
-      });
-    </script>
+    <script src="./np-hub.js"></script>
   </body>
 </html>

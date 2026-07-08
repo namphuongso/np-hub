@@ -2,6 +2,26 @@
 
 Tài liệu này mô tả cách chuẩn bị và phát hành `@namphuongtechnologi/np-hub`.
 
+## Cách nhanh — một lệnh
+
+Toàn bộ quy trình được gom về một lệnh chạy tuần tự. Dev chỉ cần chọn option khi được hỏi:
+
+```bash
+npm run release
+```
+
+Lệnh này sẽ tự động:
+
+1. Kiểm tra đăng nhập NPM (tự mở `npm login` nếu chưa).
+2. Chạy Quality Gate: `lint` → `typecheck` → `test` → `build`.
+3. Hỏi chọn version: `patch` / `minor` / `major` / `skip`.
+4. Kiểm tra nội dung package (`npm pack --dry-run`).
+5. Hỏi `public` / `restricted`, xác nhận rồi publish.
+
+Nếu bất kỳ bước nào thất bại, quy trình dừng ngay để dev xử lý.
+
+Các mục bên dưới mô tả từng bước thủ công để tham khảo hoặc khi cần làm tay.
+
 ## 1) Điều kiện trước khi phát hành
 
 - Đăng nhập NPM bằng đúng tài khoản công ty.
@@ -51,6 +71,12 @@ Xác nhận package có các file:
 - `docs/*`
 
 ## 5) Publish
+
+Đăng nhập NPM trước khi publish:
+
+```bash
+npm login
+```
 
 Với package scoped phát hành public:
 
