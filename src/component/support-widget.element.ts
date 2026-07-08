@@ -41,9 +41,6 @@ async function urlToFile(url: string): Promise<File | null> {
 interface FormPrefillInput {
   content?: string;
   attachments?: string[];
-  priority?: number;
-  coordinators?: string[];
-  emailContacts?: string[];
 }
 
 export class SupportWidgetElement extends HTMLElement {
@@ -60,9 +57,9 @@ export class SupportWidgetElement extends HTMLElement {
   private selectedFiles: File[] = [];
   private prefilledAttachments: string[] = [];
   private previewUrls: string[] = [];
-  private priority = 0;
-  private coordinators: string[] = [];
-  private emailContacts: string[] = [];
+  public priority = 0;
+  public coordinators: string[] = [];
+  public emailContacts: string[] = [];
 
   constructor() {
     super();
@@ -94,12 +91,35 @@ export class SupportWidgetElement extends HTMLElement {
     this.prefillFromState();
   }
 
+  setConfig(config: Partial<SupportWidgetConfig>): void {
+    this.config = {
+      ...this.config,
+      ...config,
+    };
+    if (config.projectId !== undefined) {
+      this.setAttribute("project-id", config.projectId);
+    }
+    if (config.isDev !== undefined) {
+      if (config.isDev) {
+        this.setAttribute("is-dev", "");
+      } else {
+        this.removeAttribute("is-dev");
+      }
+    }
+    if (config.priority !== undefined) {
+      this.priority = config.priority;
+    }
+    if (config.coordinators !== undefined) {
+      this.coordinators = config.coordinators;
+    }
+    if (config.emailContacts !== undefined) {
+      this.emailContacts = config.emailContacts;
+    }
+  }
+
   setFormPrefill(data: FormPrefillInput): void {
     this.setInputValue("content", data.content ?? "");
     this.prefilledAttachments = data.attachments ?? [];
-    this.priority = data.priority ?? 0;
-    this.coordinators = data.coordinators ?? [];
-    this.emailContacts = data.emailContacts ?? [];
     this.renderFileList();
   }
 
@@ -115,6 +135,7 @@ export class SupportWidgetElement extends HTMLElement {
 
   private syncConfigFromAttributes(): void {
     this.config = {
+      ...this.config,
       projectId: this.getAttribute("project-id") ?? "",
       isDev: this.hasAttribute("is-dev"),
     };
@@ -540,9 +561,6 @@ export class SupportWidgetElement extends HTMLElement {
       const submission: SupportSubmissionInput = {
         content,
         attachments: [], // dummy value for local validation of required content field
-        priority: this.priority,
-        coordinators: this.coordinators,
-        emailContacts: this.emailContacts,
       };
       validateSubmission(submission);
 

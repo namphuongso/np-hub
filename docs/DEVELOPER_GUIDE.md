@@ -66,7 +66,8 @@ npm run typecheck
 ### Methods
 
 - `setUser(user)`: prefill thông tin người gửi
-- `setFormPrefill(data)`: prefill nội dung form (`content`, `attachments`, `priority`, `coordinators`, `emailContacts`)
+- `setConfig(config)`: cấu hình thông tin dự án (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`)
+- `setFormPrefill(data)`: prefill nội dung form (`content`, `attachments`)
 - `open()` / `close()`: điều khiển modal
 
 ### Attributes

@@ -7,14 +7,14 @@ export interface SupportUser {
 export interface SupportWidgetConfig {
   projectId: string;
   isDev?: boolean;
-}
-
-export interface SupportSubmissionInput {
-  content: string;
-  attachments: string[];
   priority?: number;
   coordinators?: string[];
   emailContacts?: string[];
+}
+
+export interface SupportSubmissionInput {
+  content?: string;
+  attachments?: string[];
 }
 
 export interface SupportRequestPayload {

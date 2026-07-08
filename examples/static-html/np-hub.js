@@ -5,6 +5,12 @@ function initNpHub() {
   var widget = document.createElement("np-hub");
   widget.setAttribute("project-id", "NPP");
   widget.setAttribute("is-dev", "");
+
+  // Cấu hình dự án (Project Config)
+  widget.priority = 0;
+  widget.coordinators = [];
+  widget.emailContacts = [];
+
   document.body.appendChild(widget);
 
   widget.setUser({
@@ -16,9 +22,6 @@ function initNpHub() {
   widget.setFormPrefill({
     content: "Mô tả sự cố cần hỗ trợ...",
     attachments: [],
-    priority: 0,
-    coordinators: [],
-    emailContacts: [],
   });
 
   widget.addEventListener("np-hub-submit-success", function (event) {

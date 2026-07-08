@@ -18,6 +18,12 @@ function initNpHub() {
   var widget = document.createElement("np-hub");
   widget.setAttribute("project-id", "NPP"); // bắt buộc
   // widget.setAttribute("is-dev", "");     // bỏ comment nếu dùng API dev
+
+  // Cấu hình dự án (Project Config)
+  widget.priority = 0;
+  widget.coordinators = [];
+  widget.emailContacts = [];
+
   document.body.appendChild(widget);
 
   widget.setUser({
@@ -29,9 +35,6 @@ function initNpHub() {
   widget.setFormPrefill({
     content: "Mô tả sự cố cần hỗ trợ...",
     attachments: [],
-    priority: 0,
-    coordinators: [],
-    emailContacts: [],
   });
 
   widget.addEventListener("np-hub-submit-success", function (event) {
@@ -87,6 +90,9 @@ export default function App() {
       <SupportWidget
         projectId="NPP"
         isDev
+        priority={0}
+        coordinators={[]}
+        emailContacts={[]}
         user={{
           name: "Nguyen Van A",
           email: "a@gmail.com",
@@ -95,9 +101,6 @@ export default function App() {
         formPrefill={{
           content: "Mô tả sự cố cần hỗ trợ...",
           attachments: [],
-          priority: 0,
-          coordinators: [],
-          emailContacts: [],
         }}
         onSubmitSuccess={(detail) => console.log("Thành công:", detail)}
         onSubmitError={(error) => console.error("Lỗi:", error)}
@@ -109,16 +112,19 @@ export default function App() {
 
 ### Props
 
-| Prop                 | Bắt buộc | Mô tả                                         |
-| -------------------- | -------- | --------------------------------------------- |
-| `projectId`          | Có       | Mã dự án                                      |
-| `isDev`              | Không    | `true` = API Development; mặc định Production |
-| `user`               | Không    | Điền sẵn tên, email, SĐT                      |
-| `formPrefill`        | Không    | Điền sẵn nội dung form                        |
-| `width` / `height`   | Không    | Kích thước nút nổi (mặc định `72px`)          |
-| `onSubmitSuccess`    | Không    | Callback khi gửi thành công                   |
-| `onSubmitError`      | Không    | Callback khi gửi lỗi                          |
-| `onOpen` / `onClose` | Không    | Callback khi mở/đóng modal                    |
+| Prop                 | Bắt buộc | Mô tả                                             |
+| -------------------- | -------- | ------------------------------------------------- |
+| `projectId`          | Có       | Mã dự án                                          |
+| `isDev`              | Không    | `true` = API Development; mặc định Production     |
+| `priority`           | Không    | Độ ưu tiên (mặc định `0`)                         |
+| `coordinators`       | Không    | Danh sách điều phối viên (mảng email)             |
+| `emailContacts`      | Không    | Danh sách email liên hệ nhận bản tin              |
+| `user`               | Không    | Điền sẵn tên, email, SĐT                          |
+| `formPrefill`        | Không    | Điền sẵn nội dung form (`content`, `attachments`) |
+| `width` / `height`   | Không    | Kích thước nút nổi (mặc định `72px`)              |
+| `onSubmitSuccess`    | Không    | Callback khi gửi thành công                       |
+| `onSubmitError`      | Không    | Callback khi gửi lỗi                              |
+| `onOpen` / `onClose` | Không    | Callback khi mở/đóng modal                        |
 
 ---
 

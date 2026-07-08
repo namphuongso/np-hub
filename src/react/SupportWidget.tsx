@@ -15,6 +15,9 @@ registerSupportWidget();
 export interface SupportWidgetProps {
   projectId: string;
   isDev?: boolean;
+  priority?: number;
+  coordinators?: string[];
+  emailContacts?: string[];
   width?: string | number;
   height?: string | number;
   user?: SupportUser;
@@ -28,6 +31,9 @@ export interface SupportWidgetProps {
 export function SupportWidget({
   projectId,
   isDev,
+  priority,
+  coordinators,
+  emailContacts,
   width,
   height,
   user,
@@ -47,6 +53,18 @@ export function SupportWidget({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const el = widgetRef.current;
+    if (!el) return;
+    el.setConfig({
+      projectId,
+      isDev,
+      priority,
+      coordinators,
+      emailContacts,
+    });
+  }, [projectId, isDev, priority, coordinators, emailContacts]);
 
   useEffect(() => {
     const el = widgetRef.current;
