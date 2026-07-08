@@ -1,5 +1,4 @@
 import { resolveBaseUrl } from "../core/config/resolve-base-url";
-import { mapToSupportRequestPayload } from "../core/mapping/request-mapper";
 import {
   validateSubmission,
   validateUser,
@@ -26,6 +25,19 @@ function getTemplate(): HTMLTemplateElement {
   return sharedTemplate;
 }
 
+async function urlToFile(url: string): Promise<File | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const name = url.substring(url.lastIndexOf("/") + 1) || "attachment";
+    return new File([blob], name, { type: blob.type });
+  } catch (e) {
+    console.warn("Failed to fetch prefilled attachment", url, e);
+    return null;
+  }
+}
+
 interface FormPrefillInput {
   content?: string;
   attachments?: string[];
@@ -49,6 +61,13 @@ export class SupportWidgetElement extends HTMLElement {
 
   private user?: SupportUser;
   private dragOccurred = false;
+
+  // Internal states for fields mapped behind the scenes
+  private selectedFiles: File[] = [];
+  private prefilledAttachments: string[] = [];
+  private priority = 0;
+  private coordinators: string[] = [];
+  private emailContacts: string[] = [];
 
   constructor() {
     super();
@@ -82,10 +101,11 @@ export class SupportWidgetElement extends HTMLElement {
 
   setFormPrefill(data: FormPrefillInput): void {
     this.setInputValue("content", data.content ?? "");
-    this.setInputValue("attachments", (data.attachments ?? []).join("\n"));
-    this.setInputValue("priority", String(data.priority ?? 0));
-    this.setInputValue("coordinators", (data.coordinators ?? []).join(","));
-    this.setInputValue("email-contacts", (data.emailContacts ?? []).join(","));
+    this.prefilledAttachments = data.attachments ?? [];
+    this.priority = data.priority ?? 0;
+    this.coordinators = data.coordinators ?? [];
+    this.emailContacts = data.emailContacts ?? [];
+    this.renderFileList();
   }
 
   open(): void {
@@ -136,13 +156,77 @@ export class SupportWidgetElement extends HTMLElement {
         this.close();
       }
     });
+
+    // File selection UI handlers
+    const uploadTrigger = root.getElementById("upload-trigger");
+    const fileInput = root.getElementById("file-input") as HTMLInputElement | null;
+
+    if (uploadTrigger && fileInput) {
+      uploadTrigger.addEventListener("click", () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files) {
+          Array.from(fileInput.files).forEach((file) => {
+            this.selectedFiles.push(file);
+          });
+          // Reset file input value to allow selecting the same file again
+          fileInput.value = "";
+          this.renderFileList();
+        }
+      });
+    }
+  }
+
+  private renderFileList(): void {
+    const fileListEl = this.shadowRoot?.getElementById("file-list");
+    if (!fileListEl) return;
+    fileListEl.innerHTML = "";
+
+    // Prefilled URLs
+    this.prefilledAttachments.forEach((url, index) => {
+      const item = document.createElement("div");
+      item.className = "file-item";
+      const name = url.substring(url.lastIndexOf("/") + 1) || url;
+      item.innerHTML = `
+        <span class="file-name" title="${url}">${name} (đã gán)</span>
+        <button type="button" class="btn-remove" data-type="prefilled" data-index="${index}">×</button>
+      `;
+      fileListEl.appendChild(item);
+    });
+
+    // Selected local files
+    this.selectedFiles.forEach((file, index) => {
+      const item = document.createElement("div");
+      item.className = "file-item";
+      item.innerHTML = `
+        <span class="file-name" title="${file.name}">${file.name}</span>
+        <button type="button" class="btn-remove" data-type="selected" data-index="${index}">×</button>
+      `;
+      fileListEl.appendChild(item);
+    });
+
+    // Hook remove event
+    fileListEl.querySelectorAll(".btn-remove").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const type = target.getAttribute("data-type");
+        const index = parseInt(target.getAttribute("data-index") || "0", 10);
+        if (type === "prefilled") {
+          this.prefilledAttachments.splice(index, 1);
+        } else {
+          this.selectedFiles.splice(index, 1);
+        }
+        this.renderFileList();
+      });
+    });
   }
 
   private prefillFromState(): void {
     this.setInputValue("requester", this.user?.name ?? "");
     this.setInputValue("email", this.user?.email ?? "");
     this.setInputValue("phone-number", this.user?.phoneNumber ?? "");
-    this.setInputValue("project-id", this.config.projectId ?? "");
   }
 
   private applyLauncherStyle(): void {
@@ -181,24 +265,6 @@ export class SupportWidgetElement extends HTMLElement {
     return el?.value?.trim() ?? "";
   }
 
-  private parseArrayInput(raw: string, separator: string): string[] {
-    if (!raw) return [];
-    if (raw.startsWith("[")) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          return parsed.map((item) => String(item).trim()).filter(Boolean);
-        }
-      } catch {
-        return [];
-      }
-    }
-    return raw
-      .split(separator)
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
   private async submit(): Promise<void> {
     try {
       const user: SupportUser = {
@@ -208,37 +274,48 @@ export class SupportWidgetElement extends HTMLElement {
       };
 
       this.user = user;
-      this.config.projectId =
-        this.getInputValue("project-id") || this.config.projectId;
 
       validateWidgetConfig(this.config);
       validateUser(user);
 
+      const content = this.getInputValue("content");
       const submission: SupportSubmissionInput = {
-        content: this.getInputValue("content"),
-        attachments: this.parseArrayInput(
-          this.getInputValue("attachments"),
-          "\n",
-        ),
-        priority: Number(this.getInputValue("priority") || 0),
-        coordinators: this.parseArrayInput(
-          this.getInputValue("coordinators"),
-          ",",
-        ),
-        emailContacts: this.parseArrayInput(
-          this.getInputValue("email-contacts"),
-          ",",
-        ),
+        content,
+        attachments: [], // dummy value for local validation of required content field
+        priority: this.priority,
+        coordinators: this.coordinators,
+        emailContacts: this.emailContacts,
       };
       validateSubmission(submission);
 
-      const payload = mapToSupportRequestPayload({
-        config: this.config,
-        user,
-        submission,
-      });
+      // Create FormData to send request as multipart/form-data
+      const formData = new FormData();
+      formData.append("Requester", user.name);
+      formData.append("PhoneNumber", user.phoneNumber);
+      formData.append("Email", user.email);
+      formData.append("Content", content);
+      formData.append("ProjectId", this.config.projectId);
+      formData.append("Priority", String(this.priority));
+
+      // Fetch prefilled attachments and convert them to Files
+      for (const url of this.prefilledAttachments) {
+        const file = await urlToFile(url);
+        if (file) {
+          formData.append("Attachments", file);
+        }
+      }
+
+      // Add newly selected files
+      for (const file of this.selectedFiles) {
+        formData.append("Attachments", file);
+      }
+
+      // Add coordinators and emailContacts
+      this.coordinators.forEach((coord) => formData.append("Coordinators", coord));
+      this.emailContacts.forEach((contact) => formData.append("EmailContacts", contact));
+
       const baseUrl = resolveBaseUrl(this.config);
-      const result = await createSupportRequest(baseUrl, payload);
+      const result = await createSupportRequest(baseUrl, formData);
 
       this.dispatchEvent(
         new CustomEvent(WIDGET_EVENTS.SUBMIT_SUCCESS, {
@@ -257,6 +334,7 @@ export class SupportWidgetElement extends HTMLElement {
       );
     }
   }
+
 
   private setupDrag(launcher: HTMLElement): void {
     launcher.addEventListener("pointerdown", (e: PointerEvent) => {

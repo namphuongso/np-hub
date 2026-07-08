@@ -3,60 +3,52 @@
 <div id="modal" class="modal">
   <div class="dialog" role="dialog" aria-modal="true" aria-label="Support request form">
     <div class="header">
-      <h3 class="title">Create Support Request</h3>
+      <h3 class="title">Tạo yêu cầu</h3>
       <button id="close-btn" class="close-btn" type="button" aria-label="Close">×</button>
     </div>
 
     <div class="form-grid">
       <div class="field">
-        <label for="requester">Requester *</label>
-        <input id="requester" type="text" placeholder="Nguyen Van A" />
+        <label for="requester"><span class="required">*</span> Họ và tên</label>
+        <input id="requester" type="text" placeholder="Họ và tên..." />
       </div>
 
       <div class="field">
-        <label for="phone-number">PhoneNumber *</label>
-        <input id="phone-number" type="text" placeholder="0912345678" />
-      </div>
-
-      <div class="field">
-        <label for="email">Email *</label>
-        <input id="email" type="email" placeholder="a@gmail.com" />
-      </div>
-
-      <div class="field">
-        <label for="project-id">ProjectId</label>
-        <input id="project-id" type="text" placeholder="NPP" />
+        <label for="phone-number"><span class="required">*</span> Số điện thoại</label>
+        <input id="phone-number" type="text" placeholder="Số điện thoại..." />
       </div>
 
       <div class="field full">
-        <label for="content">Content *</label>
-        <textarea id="content" placeholder="Mô tả vấn đề của bạn..."></textarea>
-      </div>
-
-      <div class="field">
-        <label for="priority">Priority</label>
-        <input id="priority" type="number" min="0" value="0" />
+        <label for="email"><span class="required">*</span> Email</label>
+        <input id="email" type="email" placeholder="Email..." />
       </div>
 
       <div class="field full">
-        <label for="attachments">Attachments (File)</label>
-        <textarea id="attachments" placeholder='Dán URL file, mỗi dòng 1 file hoặc JSON array ["https://..."]'></textarea>
+        <label for="content"><span class="required">*</span> Nội dung</label>
+        <textarea id="content" placeholder="Anh/Chị vui lòng nhập thông tin dự án và vấn đề cần hỗ trợ"></textarea>
       </div>
 
       <div class="field full">
-        <label for="coordinators">Coordinators</label>
-        <input id="coordinators" type="text" placeholder="a@example.com,b@example.com" />
-      </div>
-
-      <div class="field full">
-        <label for="email-contacts">EmailContacts</label>
-        <input id="email-contacts" type="text" placeholder="a@example.com,b@example.com" />
+        <label>File đính kèm</label>
+        <div class="upload-container">
+          <button id="upload-trigger" class="btn btn-upload" type="button">
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Tải lên
+          </button>
+          <input id="file-input" type="file" multiple style="display: none;" />
+        </div>
+        <div id="file-list" class="file-list"></div>
       </div>
     </div>
 
     <div class="actions">
-      <button id="cancel-btn" class="btn btn-secondary" type="button">Cancel</button>
-      <button id="submit-btn" class="btn btn-primary" type="button">Submit</button>
+      <button id="cancel-btn" class="btn btn-secondary" type="button">Hủy</button>
+      <button id="submit-btn" class="btn btn-primary" type="button">Tạo yêu cầu</button>
     </div>
   </div>
 </div>
+

@@ -1,15 +1,19 @@
-import type { SupportRequestPayload } from "../../types/public";
-import { postJson } from "./http-client";
+import { postFormData } from "./http-client";
 
 interface CreateRequestResponse {
-  id?: string;
+  statusCode?: number;
   message?: string;
+  data?: {
+    url?: string;
+    requestCode?: string;
+  };
 }
 
 export async function createSupportRequest(
   baseUrl: string,
-  payload: SupportRequestPayload,
+  formData: FormData,
 ): Promise<CreateRequestResponse> {
-  const endpoint = `${baseUrl.replace(/\/$/, "")}/support/requests`;
-  return postJson<CreateRequestResponse>(endpoint, payload);
+  const endpoint = `${baseUrl.replace(/\/$/, "")}/api/supportcenter/create-request-anonymous`;
+  return postFormData<CreateRequestResponse>(endpoint, formData);
 }
+
