@@ -14,9 +14,9 @@ Lệnh này sẽ tự động:
 
 1. Kiểm tra đăng nhập NPM (tự mở `npm login` nếu chưa).
 2. Chạy Quality Gate: `lint` → `typecheck` → `test` → `build`.
-3. Hỏi chọn version: `patch` / `minor` / `major` / `skip`.
+3. Hỏi chọn version: `1` patch / `2` minor / `3` major / `4` skip.
 4. Kiểm tra nội dung package (`npm pack --dry-run`).
-5. Hỏi `public` / `restricted`, xác nhận rồi publish.
+5. Hỏi `1` public / `2` restricted, xác nhận `1` (y) hoặc `2` (n) rồi publish.
 
 Nếu bất kỳ bước nào thất bại, quy trình dừng ngay để dev xử lý.
 

@@ -43,11 +43,24 @@ function capture(cmd, args) {
 
 const rl = createInterface({ input: stdin, output: stdout });
 
-async function ask(question, choices) {
+async function askNumbered(question, options) {
+  const keys = options.map((o) => o.key);
+  while (true) {
+    const answer = (await rl.question(question)).trim();
+    const match = options.find(
+      (o) => o.key === answer || o.value === answer.toLowerCase()
+    );
+    if (match) return match.value;
+    log(`${C.yellow}Vui lòng chọn: ${keys.join(" / ")}${C.reset}`);
+  }
+}
+
+async function askYesNo(question) {
   while (true) {
     const answer = (await rl.question(question)).trim().toLowerCase();
-    if (choices.includes(answer)) return answer;
-    log(`${C.yellow}Vui lòng chọn: ${choices.join(" / ")}${C.reset}`);
+    if (answer === "y" || answer === "1") return true;
+    if (answer === "n" || answer === "2") return false;
+    log(`${C.yellow}Vui lòng chọn: 1 (y) / 2 (n)${C.reset}`);
   }
 }
 
@@ -75,14 +88,16 @@ async function main() {
 
   // 3) Chọn version
   step(3, TOTAL, "Chọn loại version");
-  log("  patch  — sửa lỗi, không phá API");
-  log("  minor  — thêm tính năng tương thích ngược");
-  log("  major  — có breaking change");
-  log("  skip   — giữ nguyên version hiện tại");
-  const choice = await ask(
-    `${C.bold}Chọn [patch/minor/major/skip]: ${C.reset}`,
-    ["patch", "minor", "major", "skip"]
-  );
+  log("  1 — patch  (sửa lỗi)");
+  log("  2 — minor  (tính năng mới)");
+  log("  3 — major  (breaking change)");
+  log("  4 — skip   (giữ version)");
+  const choice = await askNumbered(`${C.bold}Chọn [1-4]: ${C.reset}`, [
+    { key: "1", value: "patch" },
+    { key: "2", value: "minor" },
+    { key: "3", value: "major" },
+    { key: "4", value: "skip" },
+  ]);
   if (choice !== "skip") {
     run("npm", ["version", choice]);
   } else {
@@ -97,15 +112,16 @@ async function main() {
 
   // 5) Publish
   step(5, TOTAL, "Publish lên NPM");
-  const access = await ask(
-    `${C.bold}Phát hành dạng [public/restricted]: ${C.reset}`,
-    ["public", "restricted"]
+  log("  1 — public");
+  log("  2 — restricted");
+  const access = await askNumbered(`${C.bold}Chọn [1-2]: ${C.reset}`, [
+    { key: "1", value: "public" },
+    { key: "2", value: "restricted" },
+  ]);
+  const confirm = await askYesNo(
+    `${C.yellow}Xác nhận publish v${pkg.out} (${access})? [1=y / 2=n]: ${C.reset}`
   );
-  const confirm = await ask(
-    `${C.yellow}Xác nhận publish v${pkg.out} (${access})? [y/n]: ${C.reset}`,
-    ["y", "n"]
-  );
-  if (confirm !== "y") {
+  if (!confirm) {
     log(`${C.yellow}Đã huỷ publish.${C.reset}`);
     rl.close();
     process.exit(0);
