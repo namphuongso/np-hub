@@ -2,3 +2,12 @@ node_modules
 dist
 .DS_Store
 coverage
+react.d.ts
+react.js
+react.cjs
+widget.d.ts
+widget.js
+widget.cjs
+tests/module-resolution-node/node_modules
+tests/module-resolution-node/package-lock.json
+tests/module-resolution-node/package.json

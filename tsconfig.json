@@ -9,9 +9,11 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
+    "rootDir": "./src",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
+    "jsx": "react-jsx"
   },
-  "include": ["src", "tests", "examples"]
+  "include": ["src"],
+  "exclude": ["tests/module-resolution-node"]
 }
