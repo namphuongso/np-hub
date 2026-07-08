@@ -1,6 +1,6 @@
 var NP_HUB_LOCAL = "/dist/np-hub.min.global.js";
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.8/dist/np-hub.min.global.js";
+  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.9/dist/np-hub.min.global.js";
 var USE_CDN_FALLBACK = false;
 
 function bindDemoActions(widget) {
@@ -36,6 +36,13 @@ function initNpHub() {
   //   content: "Mô tả sự cố cần hỗ trợ...",
   //   attachments: [],
   // });
+
+  // Optional: tuỳ chỉnh vị trí nút nổi (mặc định right/bottom = 20px)
+  // widget.setAttribute("right", "24");
+  // widget.setAttribute("bottom", "24");
+  // hoặc góc khác: left/top
+  // widget.setAttribute("left", "20");
+  // widget.setAttribute("bottom", "20");
 
   document.body.appendChild(widget);
   bindDemoActions(widget);

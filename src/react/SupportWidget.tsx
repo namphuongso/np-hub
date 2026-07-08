@@ -23,6 +23,10 @@ export interface SupportWidgetProps {
   emailContacts?: string[];
   width?: string | number;
   height?: string | number;
+  right?: string | number;
+  bottom?: string | number;
+  left?: string | number;
+  top?: string | number;
   user?: SupportUserPrefill;
   formPrefill?: SupportSubmissionInput;
   onSubmitSuccess?: (detail: unknown) => void;
@@ -39,6 +43,10 @@ export function SupportWidget({
   emailContacts,
   width,
   height,
+  right,
+  bottom,
+  left,
+  top,
   user,
   formPrefill,
   onSubmitSuccess,
@@ -131,5 +139,9 @@ export function SupportWidget({
     ...(isDev ? { "is-dev": true } : {}),
     ...(width !== undefined ? { width } : {}),
     ...(height !== undefined ? { height } : {}),
+    ...(right !== undefined ? { right } : {}),
+    ...(bottom !== undefined ? { bottom } : {}),
+    ...(left !== undefined ? { left } : {}),
+    ...(top !== undefined ? { top } : {}),
   });
 }

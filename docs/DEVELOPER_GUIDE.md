@@ -1,157 +1,172 @@
-# Hướng Dẫn Cho Developer
+# Developer Guide
 
-Tài liệu này giúp dev mới có thể bắt đầu đóng góp nhanh cho `@namphuongtechnologi/np-hub`.
+Guide for contributors working on `@namphuongtechnologi/np-hub`.
 
-## 1) Mục tiêu dự án
+---
 
-- Xây dựng một widget hỗ trợ dùng chung dưới dạng Web Component trong NP Hub.
-- Nhúng được vào mọi website (HTML tĩnh, React, hoặc framework khác).
-- Tập trung logic map API và validate vào một nơi.
+## Goals
 
-## 2) Công nghệ sử dụng
+- Ship a reusable support widget as a native Web Component
+- Support static HTML, React, and other hosts without duplicating business logic
+- Keep API mapping and validation centralized in `src/core`
 
-- TypeScript
-- Web Component native (`customElements`)
-- `tsup` để build bundle (ESM, CJS, IIFE)
-- `vitest` để test
-- `eslint` để lint
+---
 
-## 3) Cấu trúc thư mục
+## Stack
 
-- `src/core`: nghiệp vụ chính (config/validation)
-- `src/services`: API và side effects
-- `src/component`: UI của web component và vòng đời sự kiện
-- `src/types`: kiểu dữ liệu public
-- `src/register.ts`: đăng ký custom element
-- `src/index.ts`: public exports của thư viện
-- `tests/unit`: unit test
-- `examples/static-html`: ví dụ nhúng web tĩnh tại local
+| Concern        | Choice                                      |
+| -------------- | ------------------------------------------- |
+| Language       | TypeScript                                  |
+| UI runtime     | Native Web Component (`customElements`)     |
+| Bundler        | `tsup` (ESM, CJS, IIFE)                     |
+| Tests          | `vitest`                                    |
+| Lint           | `eslint`                                    |
+| Node           | `>= 18`                                     |
 
-## 4) Khởi tạo môi trường
+---
 
-Yêu cầu:
+## Repository layout
 
-- Node.js `>= 18` (theo `package.json`)
-- npm `>= 9` (khuyến nghị dùng bản đi kèm Node LTS)
+| Path | Responsibility |
+| ---- | -------------- |
+| `src/core` | Config resolution & validation |
+| `src/services` | HTTP / API side effects |
+| `src/component` | Widget UI, template, styles, lifecycle |
+| `src/react` | React wrapper (`SupportWidget`) |
+| `src/types` | Public TypeScript types |
+| `src/register.ts` | Custom element registration |
+| `src/index.ts` | Library public exports |
+| `tests/unit` | Unit tests |
+| `examples/static-html` | Local static integration sample |
+
+---
+
+## Setup
 
 ```bash
 npm install
 ```
 
-## 5) Chạy source khi phát triển
+Recommended: npm that ships with a current Node LTS (`npm >= 9`).
 
-### Build/watch source
+---
+
+## Local development
+
+### Build / watch
 
 ```bash
-# chạy watch mode để build lại khi có thay đổi
-npm run dev
+npm run dev      # watch mode
+npm run build    # production build → dist/
 ```
 
-```bash
-# build production (ra thư mục dist/)
-npm run build
-```
+### Preview with the static example
 
-### Chạy thử local với ví dụ static HTML
-
-Sau khi `npm run build`, chạy local server từ root repo:
+Serve from the **repository root** so `/dist` is reachable:
 
 ```bash
-cd "/Users/lyquocvan/Documents/NamPhuongSo/NP Hub"
 npm run build
 npx serve .
 ```
 
-Mở URL test:
+Open:
 
-- `http://localhost:3000/examples/static-html/`
+```
+http://localhost:3000/examples/static-html/
+```
 
-> Không chạy `npx serve examples/static-html` vì sẽ không truy cập được `/dist/np-hub.min.global.js` local và dễ rơi vào code cũ.
+Do **not** run `npx serve examples/static-html` — the page will fail to load `/dist/np-hub.min.global.js` and may appear to use stale assets.
 
-Hoặc bạn có thể mở file:
+The demo harness is `examples/static-html/np-hub.js`.
 
-- `examples/static-html/index.html`
+---
 
-File này dùng script local `examples/static-html/np-hub.js` để nhúng widget và test nhanh hành vi UI/event.
-
-## 6) Chạy test và các bước kiểm tra chất lượng
+## Quality checks
 
 ```bash
-# unit test
 npm run test
-```
-
-```bash
-# lint
 npm run lint
-```
-
-```bash
-# kiểm tra type
 npm run typecheck
-```
-
-```bash
-# kiểm tra package hoạt động khi consumer import (module resolution)
 npm run test:module-resolution
 ```
 
-Lệnh tổng hợp nên chạy trước khi tạo PR:
+Before opening a PR:
 
 ```bash
 npm run lint && npm run typecheck && npm run test && npm run build
 ```
 
-## 7) Quy trình phát triển
+---
 
-1. Tạo branch cho feature.
-2. Cập nhật code đúng module (`core`, `services`, hoặc `component`).
-3. Thêm hoặc cập nhật unit test.
-4. Chạy bộ kiểm tra chất lượng trước khi tạo PR.
-5. Tạo PR kèm test plan rõ ràng.
+## Development workflow
 
-## 8) Quy tắc code
+1. Create a feature branch.
+2. Change the correct module (`core`, `services`, `component`, or `react`).
+3. Add or update unit tests.
+4. Run the quality gate above.
+5. Open a PR with a clear test plan.
 
-- Không đặt logic map API trực tiếp trong handler UI.
-- Giữ logic resolve config tại `src/core/config` và validate tại `src/core/validation`.
-- UI widget (`src/component`) chỉ xử lý launcher, modal form, prefill và emit event.
-- Widget hỗ trợ upload file trên form và gán URL qua `setFormPrefill`.
-- Chỉ emit các public event đã được tài liệu hóa.
-- Giữ backward compatibility cho public contract, trừ khi bump major.
+---
 
-## 9) Public contract
+## Coding standards
 
-### Sự kiện
+- Do not map API payloads inside UI event handlers — keep that in `src/core` / `src/services`.
+- Resolve config in `src/core/config`; validate in `src/core/validation`.
+- `src/component` owns launcher, modal, prefill, and public events only.
+- Emit only documented public events.
+- Preserve backward compatibility of the public contract unless shipping a major version.
 
-- `np-hub-open`: phát ra khi mở modal
-- `np-hub-close`: phát ra khi đóng modal
-- `np-hub-submit-success`: phát ra khi gọi API thành công
-- `np-hub-submit-error`: phát ra khi validate/API thất bại
+---
+
+## Public contract
+
+### Events
+
+| Event | Fired when |
+| ----- | ---------- |
+| `np-hub-open` | Modal opens |
+| `np-hub-close` | Modal closes |
+| `np-hub-submit-success` | API accepts the request |
+| `np-hub-submit-error` | Validation or API failure |
 
 ### Methods
 
-- `setUser(user)`: prefill thông tin người gửi (optional khi config; form UI vẫn bắt buộc nhập)
-- `setConfig(config)`: cấu hình thông tin dự án (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`)
-- `setFormPrefill(data)`: prefill nội dung form (`content`, `attachments`) (optional)
-- `open()` / `close()`: điều khiển modal
+| Method | Purpose |
+| ------ | ------- |
+| `setConfig(config)` | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`) |
+| `setUser(user)` | Prefill requester fields (still required on submit) |
+| `setFormPrefill(data)` | Prefill `content` / `attachments` |
+| `open()` / `close()` | Control modal visibility |
 
 ### Attributes
 
-- `project-id`, `is-dev`, `width`, `height`
+| Attribute | Purpose |
+| --------- | ------- |
+| `project-id`, `is-dev` | Project & environment |
+| `width`, `height` | Launcher size (default `65px`) |
+| `right`, `bottom`, `left`, `top` | Launcher insets (default `right`/`bottom` = `20px`) |
 
-Logo nút nổi được nhúng sẵn trong bundle (`src/component/assets/np-support-logo.png`, đóng gói dưới dạng data URL khi build), không nhận cấu hình từ ngoài.
+If the user has dragged the launcher, the `localStorage` position overrides attributes until cleared.
 
-## 10) Quy tắc chọn API
+The launcher logo is embedded in the bundle (`src/component/assets/np-support-logo.png` → data URL at build time) and is not externally configurable.
 
-URL API cố định tại `src/core/config/endpoints.ts`:
+---
 
-- Không có `is-dev` → Production
-- Có `is-dev` → Development
+## API environment selection
 
-## 11) Checklist trước khi merge
+Resolved in `src/core/config/endpoints.ts`:
 
-- Code compile thành công
-- Test pass
-- Lint pass
-- Cập nhật README/docs nếu hành vi API thay đổi
-- Không hardcode thông tin nhạy cảm (credentials/secrets)
+| Condition | Environment |
+| --------- | ----------- |
+| `is-dev` / `isDev` unset or false | Production |
+| `is-dev` / `isDev` true | Development |
+
+---
+
+## Pre-merge checklist
+
+- [ ] Build succeeds
+- [ ] Tests pass
+- [ ] Lint & typecheck pass
+- [ ] README / docs updated when public behavior changes
+- [ ] No credentials or secrets committed

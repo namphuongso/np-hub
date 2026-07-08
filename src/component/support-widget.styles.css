@@ -10,18 +10,20 @@
   font-family: "Outfit", sans-serif;
   display: block;
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: var(--np-hub-right, 20px);
+  bottom: var(--np-hub-bottom, 20px);
+  left: var(--np-hub-left, auto);
+  top: var(--np-hub-top, auto);
   z-index: 10000;
 }
 
 .launcher {
-  width: var(--np-hub-width, 72px);
-  height: var(--np-hub-height, 72px);
+  width: var(--np-hub-width, 65px);
+  height: var(--np-hub-height, 65px);
   border: none;
   border-radius: 50%;
   cursor: grab;
-  box-shadow: 0 8px 28px rgba(0, 60, 130, 0.2);
+  box-shadow: 0 8px 28px rgba(6, 6, 7, 0.2);
   background-color: #ffffff;
   background-image: var(--np-hub-icon);
   background-position: center;

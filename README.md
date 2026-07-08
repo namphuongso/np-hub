@@ -1,24 +1,54 @@
-# NP Hub
+# @namphuongtechnologi/np-hub
 
-NP Hub là widget hỗ trợ dạng nút nổi góc dưới phải. Nhúng được vào **web tĩnh** hoặc **React**.
+Floating support widget for Nam Phương So applications. Drop it into any static site or React app — users open a form, submit a support request, and the request is sent to the Nam Phương API.
+
+[![npm version](https://img.shields.io/npm/v/@namphuongtechnologi/np-hub.svg)](https://www.npmjs.com/package/@namphuongtechnologi/np-hub)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ---
 
-## A) Web tĩnh (HTML)
+## Features
 
-Không cần `npm install`. Tạo **một file JS** cấu hình, rồi nhúng vào `index.html`.
+- **Web Component** (`<np-hub>`) — works in plain HTML and most frameworks
+- **React wrapper** — typed `SupportWidget` component
+- **Drag-and-drop launcher** — position persists in `localStorage`
+- **Form prefill** — optional user / content / attachment seeding; required fields still validated on submit
+- **Environment switch** — Production by default; Development via `isDev` / `is-dev`
 
-**`np-hub.js`** — load thư viện từ CDN và cấu hình tại đây:
+---
+
+## Installation
+
+```bash
+npm install @namphuongtechnologi/np-hub
+```
+
+**CDN (static HTML, no npm):**
+
+```
+https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.9/dist/np-hub.min.global.js
+```
+
+---
+
+## Quick start
+
+### Static HTML
+
+Create a config script, then include it once in your page.
+
+**`np-hub.js`**
 
 ```js
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.8/dist/np-hub.min.global.js";
+  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.9/dist/np-hub.min.global.js";
 
 function initNpHub() {
   var widget = document.createElement("np-hub");
+
   widget.setConfig({
     projectId: "NPP",
-    isDev: true,
+    isDev: false,
     priority: 0,
     coordinators: [],
     emailContacts: [],
@@ -26,25 +56,12 @@ function initNpHub() {
 
   document.body.appendChild(widget);
 
-  // Optional khi config — chỉ prefill; form UI vẫn bắt buộc nhập
-  // widget.setUser({
-  //   name: "Nguyen Van A",
-  //   email: "a@gmail.com",
-  //   phoneNumber: "0912345678",
-  // });
-
-  // Optional khi config — chỉ prefill nội dung/file
-  // widget.setFormPrefill({
-  //   content: "Mô tả sự cố cần hỗ trợ...",
-  //   attachments: [],
-  // });
-
   widget.addEventListener("np-hub-submit-success", function (event) {
-    console.log("Tạo yêu cầu thành công:", event.detail);
+    console.log("Support request created:", event.detail);
   });
 
   widget.addEventListener("np-hub-submit-error", function (event) {
-    console.error("Lỗi gửi yêu cầu:", event.detail);
+    console.error("Support request failed:", event.detail);
   });
 }
 
@@ -54,7 +71,7 @@ script.onload = initNpHub;
 document.head.appendChild(script);
 ```
 
-**`index.html`** — chỉ cần một dòng:
+**`index.html`**
 
 ```html
 <!doctype html>
@@ -70,17 +87,11 @@ document.head.appendChild(script);
 </html>
 ```
 
-Ví dụ đầy đủ: `examples/static-html/`.
+Full example: [`examples/static-html/`](./examples/static-html/).
 
----
+### React
 
-## B) React
-
-```bash
-npm install @namphuongtechnologi/np-hub
-```
-
-Import `SupportWidget` và đặt **một lần** ở root app (ví dụ `App.tsx`, `main.tsx` hoặc root layout):
+Mount **once** at the application root (`App.tsx`, `main.tsx`, or root layout).
 
 ```tsx
 import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
@@ -88,65 +99,149 @@ import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
 export default function App() {
   return (
     <>
-      {/* nội dung app */}
+      {/* app content */}
       <SupportWidget
         projectId="NPP"
-        isDev
+        isDev={false}
         priority={0}
         coordinators={[]}
         emailContacts={[]}
-        // Optional khi config — chỉ prefill; form UI vẫn bắt buộc nhập
-        // user={{
-        //   name: "Nguyen Van A",
-        //   email: "a@gmail.com",
-        //   phoneNumber: "0912345678",
-        // }}
-        // formPrefill={{
-        //   content: "Mô tả sự cố cần hỗ trợ...",
-        //   attachments: [],
-        // }}
-        onSubmitSuccess={(detail) => console.log("Thành công:", detail)}
-        onSubmitError={(error) => console.error("Lỗi:", error)}
+        onSubmitSuccess={(detail) => console.log("Success:", detail)}
+        onSubmitError={(error) => console.error("Error:", error)}
       />
     </>
   );
 }
 ```
 
-### Props
+---
 
-| Prop                 | Bắt buộc | Mô tả                                            |
-| -------------------- | -------- | ------------------------------------------------ |
-| `projectId`          | Không    | Mã dự án (nếu có)                                |
-| `isDev`              | Không    | `true` = API Development; mặc định Production    |
-| `priority`           | Không    | Độ ưu tiên (mặc định `0`)                        |
-| `coordinators`       | Không    | Danh sách điều phối viên (mảng email)            |
-| `emailContacts`      | Không    | Danh sách email liên hệ nhận bản tin             |
-| `user`               | Không    | Prefill tên/email/SĐT (form vẫn bắt buộc nhập)   |
-| `formPrefill`        | Không    | Prefill nội dung form (`content`, `attachments`) |
-| `width` / `height`   | Không    | Kích thước nút nổi (mặc định `72px`)             |
-| `onSubmitSuccess`    | Không    | Callback khi gửi thành công                      |
-| `onSubmitError`      | Không    | Callback khi gửi lỗi                             |
-| `onOpen` / `onClose` | Không    | Callback khi mở/đóng modal                       |
+## Configuration
+
+### `setConfig` / React props
+
+| Name            | Required | Default       | Description                                      |
+| --------------- | -------- | ------------- | ------------------------------------------------ |
+| `projectId`     | No       | —             | Project code forwarded to the API                |
+| `isDev`         | No       | `false`       | `true` → Development API; otherwise Production   |
+| `priority`      | No       | `0`           | Request priority                                 |
+| `coordinators`  | No       | `[]`          | Coordinator email list                           |
+| `emailContacts` | No       | `[]`          | Contact emails that receive the notification     |
+
+### Prefill (optional)
+
+| Name          | Method / prop     | Description                                                                 |
+| ------------- | ----------------- | --------------------------------------------------------------------------- |
+| User          | `setUser` / `user` | Prefills name, email, phone. Form UI still requires these fields on submit. |
+| Form content  | `setFormPrefill` / `formPrefill` | Prefills `content` and `attachments`.                              |
+
+```js
+// Web Component
+widget.setUser({
+  name: "Nguyen Van A",
+  email: "a@example.com",
+  phoneNumber: "0912345678",
+});
+
+widget.setFormPrefill({
+  content: "Describe the issue...",
+  attachments: [],
+});
+```
+
+```tsx
+// React
+<SupportWidget
+  projectId="NPP"
+  user={{
+    name: "Nguyen Van A",
+    email: "a@example.com",
+    phoneNumber: "0912345678",
+  }}
+  formPrefill={{
+    content: "Describe the issue...",
+    attachments: [],
+  }}
+/>
+```
+
+### Launcher size & position
+
+Default: **65×65px**, anchored **20px** from the bottom-right corner.
+
+| Attribute / prop       | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `width` / `height`     | Launcher size (default `65`)                     |
+| `right` / `bottom`     | Offset from bottom-right (default `20`)          |
+| `left` / `top`         | Use instead of `right` / `bottom` for other corners |
+
+Numeric values from React props are treated as pixels. After the user drags the launcher, the stored `localStorage` position takes precedence.
+
+```js
+widget.setAttribute("right", "24");
+widget.setAttribute("bottom", "24");
+```
+
+```tsx
+<SupportWidget projectId="NPP" right={24} bottom={24} />
+```
 
 ---
 
-## Cấu hình API
+## Events & methods
 
-| Môi trường                       | URL                                           |
-| -------------------------------- | --------------------------------------------- |
-| Production (mặc định)            | `https://namphuong-api.azurewebsites.net`     |
-| Development (`is-dev` / `isDev`) | `https://namphuong-api-dev.azurewebsites.net` |
+### Events (Web Component)
 
-## Xử lý sự cố
+| Event                   | When                              |
+| ----------------------- | --------------------------------- |
+| `np-hub-open`           | Modal opens                       |
+| `np-hub-close`          | Modal closes                      |
+| `np-hub-submit-success` | API accepted the support request  |
+| `np-hub-submit-error`   | Validation or API failure         |
 
-| Lỗi                                        | Cách xử lý                                                             |
-| ------------------------------------------ | ---------------------------------------------------------------------- |
-| `projectId cannot be empty.`               | Nếu truyền `project-id` / `projectId`, giá trị không được rỗng         |
-| `user.name/email/phoneNumber is required.` | Form vẫn bắt buộc đủ tên/email/SĐT; prop `user` chỉ prefill (optional) |
-| `Content is required.`                     | Người dùng cần nhập nội dung trước khi submit                          |
-| Gọi API thất bại                           | Kiểm tra `is-dev` / `isDev` nếu đang test môi trường dev               |
+React equivalent props: `onOpen`, `onClose`, `onSubmitSuccess`, `onSubmitError`.
+
+### Methods (Web Component)
+
+| Method                 | Description                    |
+| ---------------------- | ------------------------------ |
+| `setConfig(config)`    | Apply project / API settings   |
+| `setUser(user)`        | Prefill requester fields       |
+| `setFormPrefill(data)` | Prefill content / attachments  |
+| `open()` / `close()`   | Open or close the modal        |
+
+---
+
+## API environments
+
+| Environment                         | Base URL                                          |
+| ----------------------------------- | ------------------------------------------------- |
+| Production (default)                | `https://namphuong-api.azurewebsites.net`         |
+| Development (`isDev` / `is-dev`)    | `https://namphuong-api-dev.azurewebsites.net`     |
+
+---
+
+## Troubleshooting
+
+| Error                                          | Resolution                                                                 |
+| ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `projectId cannot be empty.`                   | If provided, `projectId` / `project-id` must be a non-empty string         |
+| `user.name/email/phoneNumber is required.`     | Requester fields are required on submit; `user` only prefills              |
+| `Content is required.`                         | User must enter message content before submit                              |
+| API call fails in local testing                | Set `isDev` / `is-dev` when targeting the Development environment          |
+
+---
+
+## Documentation
+
+| Document | Audience |
+| -------- | -------- |
+| [Usage (static & React)](./docs/USAGE_STATIC_REACT.md) | Integrators |
+| [Developer guide](./docs/DEVELOPER_GUIDE.md) | Contributors |
+| [Public release](./docs/PUBLIC_RELEASE.md) | Maintainers |
+
+---
 
 ## License
 
-MIT
+MIT © Nam Phương So

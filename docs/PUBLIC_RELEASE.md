@@ -1,36 +1,36 @@
-# Hướng Dẫn Phát Hành Public
+# Public Release Guide
 
-Tài liệu này mô tả cách chuẩn bị và phát hành `@namphuongtechnologi/np-hub`.
+How to prepare and publish `@namphuongtechnologi/np-hub` to npm.
 
-## Cách nhanh — một lệnh
+---
 
-Toàn bộ quy trình được gom về một lệnh chạy tuần tự. Dev chỉ cần chọn option khi được hỏi:
+## Recommended — one command
 
 ```bash
 npm run release
 ```
 
-Lệnh này sẽ tự động:
+The release script walks you through:
 
-1. Kiểm tra đăng nhập NPM (tự mở `npm login` nếu chưa).
-2. Chạy Quality Gate: `lint` → `typecheck` → `test` → `build`.
-3. Hỏi chọn version: `1` patch / `2` minor / `3` major / `4` skip.
-4. Kiểm tra nội dung package (`npm pack --dry-run`).
-5. Hỏi `1` public / `2` restricted, xác nhận `1` (y) hoặc `2` (n) rồi publish.
+1. NPM auth (opens `npm login` if needed)
+2. Quality gate: `lint` → `typecheck` → `test` → `build`
+3. Version bump: `1` patch / `2` minor / `3` major / `4` skip
+4. Package contents check (`npm pack --dry-run`)
+5. Access choice: `1` public / `2` restricted, then confirm and publish
 
-Nếu bất kỳ bước nào thất bại, quy trình dừng ngay để dev xử lý.
+Any failing step aborts the run. Use the manual steps below only when you need to intervene.
 
-Các mục bên dưới mô tả từng bước thủ công để tham khảo hoặc khi cần làm tay.
+---
 
-## 1) Điều kiện trước khi phát hành
+## Prerequisites
 
-- Đăng nhập NPM bằng đúng tài khoản công ty.
-- Có quyền publish trong scope `@namphuongtechnologi`.
-- CI hoặc kiểm tra local đã pass.
+- Logged in to npm with the company account
+- Publish rights on the `@namphuongtechnologi` scope
+- Local or CI quality checks already green
 
-## 2) Cổng chất lượng (Quality Gate)
+---
 
-Chạy đầy đủ các bước kiểm tra bắt buộc:
+## Manual quality gate
 
 ```bash
 npm run lint
@@ -39,72 +39,90 @@ npm run test
 npm run build
 ```
 
-## 3) Quản lý version
+`prepublishOnly` runs the same gate automatically before publish.
 
-Dùng semantic versioning:
+---
 
-- patch: sửa lỗi, không phá API
-- minor: thêm tính năng tương thích ngược
-- major: thay đổi có breaking change
+## Versioning
 
-Cập nhật version:
+Follow [Semantic Versioning](https://semver.org/):
+
+| Bump | Use when |
+| ---- | -------- |
+| `patch` | Bug fixes, no API break |
+| `minor` | Backward-compatible features |
+| `major` | Breaking changes |
 
 ```bash
-npm version patch
+npm version patch   # or minor / major
 ```
 
-Có thể thay bằng `minor` hoặc `major` khi phù hợp.
+---
 
-## 4) Kiểm tra nội dung package
-
-Kiểm tra nội dung sẽ được publish:
+## Inspect package contents
 
 ```bash
 npm pack --dry-run
 ```
 
-Xác nhận package có các file:
+Confirm the tarball includes:
 
 - `dist/*`
 - `README.md`
 - `LICENSE`
 - `docs/*`
 
-## 5) Publish
+README is the primary surface on the npm package page — verify it renders correctly before publishing.
 
-Đăng nhập NPM trước khi publish:
+---
+
+## Publish
 
 ```bash
 npm login
 ```
 
-Với package scoped phát hành public:
+Scoped public package:
 
 ```bash
 npm publish --access public
 ```
 
-Với package private:
+Private / restricted:
 
 ```bash
 npm publish --access restricted
 ```
 
-## 6) Kiểm tra sau publish
+---
 
-- Kiểm tra trang package trên npm.
-- Xác nhận README hiển thị đúng.
-- Cài ở một project mẫu sạch để test:
+## Post-publish verification
+
+1. Open the package page on [npm](https://www.npmjs.com/package/@namphuongtechnologi/np-hub) and confirm README rendering.
+2. Install into a clean sample project:
 
 ```bash
 npm install @namphuongtechnologi/np-hub
 ```
 
-## 7) Mẫu release notes
+3. Smoke-test both the React import and the CDN / IIFE bundle if the release touches distribution.
 
-- Version:
-- Ngày phát hành:
-- Loại: patch/minor/major
-- Tóm tắt:
-- Breaking changes:
-- Hướng dẫn migration:
+---
+
+## Release notes template
+
+```md
+## @namphuongtechnologi/np-hub x.y.z
+
+**Date:** YYYY-MM-DD  
+**Type:** patch | minor | major
+
+### Summary
+-
+
+### Breaking changes
+- None
+
+### Migration
+- N/A
+```

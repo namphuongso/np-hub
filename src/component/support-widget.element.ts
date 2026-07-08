@@ -47,7 +47,16 @@ interface FormPrefillInput {
 type RequiredFieldId = "requester" | "phone-number" | "email" | "content";
 
 export class SupportWidgetElement extends HTMLElement {
-  static observedAttributes = ["project-id", "is-dev", "width", "height"];
+  static observedAttributes = [
+    "project-id",
+    "is-dev",
+    "width",
+    "height",
+    "right",
+    "bottom",
+    "left",
+    "top",
+  ];
 
   private config: SupportWidgetConfig = {
     projectId: undefined,
@@ -76,6 +85,7 @@ export class SupportWidgetElement extends HTMLElement {
     this.syncConfigFromAttributes();
     this.prefillFromState();
     this.applyLauncherStyle();
+    this.applyPositionStyle();
     this.restorePosition();
     window.addEventListener("resize", this.handleResize);
   }
@@ -89,6 +99,7 @@ export class SupportWidgetElement extends HTMLElement {
     this.syncConfigFromAttributes();
     this.prefillFromState();
     this.applyLauncherStyle();
+    this.applyPositionStyle();
   }
 
   setUser(user: SupportUserPrefill): void {
@@ -489,6 +500,35 @@ export class SupportWidgetElement extends HTMLElement {
     if (height) launcherStyles.push(`--np-hub-height: ${height}`);
 
     launcher.setAttribute("style", `${launcherStyles.join("; ")};`);
+  }
+
+  private applyPositionStyle(): void {
+    // Skip when user already dragged the launcher (inline left/top set).
+    if (this.style.left && this.style.top) return;
+
+    const right = this.normalizeSize(this.getAttribute("right"));
+    const bottom = this.normalizeSize(this.getAttribute("bottom"));
+    const left = this.normalizeSize(this.getAttribute("left"));
+    const top = this.normalizeSize(this.getAttribute("top"));
+
+    this.setPositionVar("--np-hub-left", left);
+    this.setPositionVar("--np-hub-top", top);
+    this.setPositionVar("--np-hub-right", right);
+    this.setPositionVar("--np-hub-bottom", bottom);
+
+    // Avoid conflicting edges when only one side of a pair is given.
+    if (left && !right) this.style.setProperty("--np-hub-right", "auto");
+    if (right && !left) this.style.setProperty("--np-hub-left", "auto");
+    if (top && !bottom) this.style.setProperty("--np-hub-bottom", "auto");
+    if (bottom && !top) this.style.setProperty("--np-hub-top", "auto");
+  }
+
+  private setPositionVar(name: string, value: string | null): void {
+    if (value) {
+      this.style.setProperty(name, value);
+    } else {
+      this.style.removeProperty(name);
+    }
   }
 
   private normalizeSize(value: string | null): string | null {
