@@ -112,7 +112,7 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 - Do not map API payloads inside UI event handlers — keep that in `src/core` / `src/services`.
 - Resolve config in `src/core/config`; validate in `src/core/validation`.
-- `src/component` owns launcher, modal, prefill, and public events only.
+- `src/component` owns launcher, modal, prefill, submit toast, and public events only.
 - Emit only documented public events.
 - Preserve backward compatibility of the public contract unless shipping a major version.
 
@@ -133,7 +133,7 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 | Method | Purpose |
 | ------ | ------- |
-| `setConfig(config)` | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`) |
+| `setConfig(config)` | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`, `toastDuration`) |
 | `setUser(user)` | Prefill requester fields (still required on submit) |
 | `setFormPrefill(data)` | Prefill `content` / `attachments` |
 | `open()` / `close()` | Control modal visibility |
@@ -149,6 +149,21 @@ npm run lint && npm run typecheck && npm run test && npm run build
 If the user has dragged the launcher, the `localStorage` position overrides attributes until cleared.
 
 The launcher logo is embedded in the bundle (`src/component/assets/np-support-logo.png` → data URL at build time) and is not externally configurable.
+
+### Submit feedback toast
+
+Implemented in `src/component/support-widget.element.ts` with markup in `support-widget.template.html` and styles in `support-widget.styles.css`.
+
+| Behavior | Detail |
+| -------- | ------ |
+| Trigger | API submit success, or API / runtime error |
+| Not shown | Client-side required-field validation (inline field errors only) |
+| Position | Centered overlay toast |
+| Auto-close | `toastDuration` from `setConfig` (default `4000` ms) |
+| Manual close | `toast-close-btn` dismisses immediately |
+| Success | Toast shown, then modal auto-closes after ~1.2s |
+
+Invalid `toastDuration` values (`<= 0`, `NaN`, `Infinity`) fall back to `4000`.
 
 ---
 

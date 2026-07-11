@@ -21,6 +21,7 @@ export interface SupportWidgetProps {
   priority?: number;
   coordinators?: string[];
   emailContacts?: string[];
+  toastDuration?: number;
   width?: string | number;
   height?: string | number;
   right?: string | number;
@@ -41,6 +42,7 @@ export function SupportWidget({
   priority,
   coordinators,
   emailContacts,
+  toastDuration,
   width,
   height,
   right,
@@ -74,8 +76,9 @@ export function SupportWidget({
       priority,
       coordinators,
       emailContacts,
+      toastDuration,
     });
-  }, [projectId, isDev, priority, coordinators, emailContacts]);
+  }, [projectId, isDev, priority, coordinators, emailContacts, toastDuration]);
 
   useEffect(() => {
     const el = widgetRef.current;

@@ -38,7 +38,12 @@
       <p>
         Đây là ví dụ local cho API mới. Nhấn nút bên dưới để mở form, sau đó
         bấm <strong>Tạo yêu cầu</strong> khi để trống các trường bắt buộc để
-        kiểm tra validate.
+        kiểm tra validate (chỉ highlight field, không hiện toast).
+      </p>
+      <p>
+        Khi submit thành công hoặc lỗi API, widget hiển thị toast ở giữa màn
+        hình. Toast tự đóng sau <code>toastDuration</code> ms (demo:
+        <code>6000</code>) hoặc người dùng có thể bấm <code>×</code> để đóng.
       </p>
       <p>
         Vị trí nút nổi mặc định góc dưới phải (<code>right</code>/<code>bottom</code>
@@ -46,6 +51,8 @@
         <code>setAttribute("right"|"bottom"|"left"|"top", ...)</code>.
       </p>
       <button id="open-widget" type="button">Mở widget</button>
+      <button id="btn-test-success" type="button" style="background:#10B981;margin-left:8px;">Demo Success Toast</button>
+      <button id="btn-test-error" type="button" style="background:#EF4444;margin-left:8px;">Demo Error Toast</button>
     </div>
     <script src="./np-hub.js"></script>
   </body>

@@ -13,6 +13,7 @@ Floating support widget for Nam Phương So applications. Drop it into any stati
 - **React wrapper** — typed `SupportWidget` component
 - **Drag-and-drop launcher** — position persists in `localStorage`
 - **Form prefill** — optional user / content / attachment seeding; required fields still validated on submit
+- **Submit feedback toast** — centered popup on success or API error; auto-closes or user can dismiss
 - **Environment switch** — Production by default; Development via `isDev` / `is-dev`
 
 ---
@@ -127,6 +128,7 @@ export default function App() {
 | `priority`      | No       | `0`           | Request priority                                 |
 | `coordinators`  | No       | `[]`          | Coordinator email list                           |
 | `emailContacts` | No       | `[]`          | Contact emails that receive the notification     |
+| `toastDuration` | No       | `4000`        | Toast auto-close delay in milliseconds           |
 
 ### Prefill (optional)
 
@@ -184,6 +186,29 @@ widget.setAttribute("bottom", "24");
 
 ```tsx
 <SupportWidget projectId="NPP" right={24} bottom={24} />
+```
+
+### Submit feedback toast
+
+After a successful API submit or an API/exception failure, the widget shows a **centered toast** with the result message.
+
+| Behavior | Detail |
+| -------- | ------ |
+| When shown | Submit success, or API / runtime error |
+| When hidden | Missing required fields (only inline field highlighting) |
+| Auto-close | After `toastDuration` ms (default `4000`) |
+| Manual close | User can dismiss via the `×` button |
+| Success follow-up | Modal closes automatically ~1.2s after success |
+
+```js
+widget.setConfig({
+  projectId: "NPP",
+  toastDuration: 6000, // auto-close after 6 seconds
+});
+```
+
+```tsx
+<SupportWidget projectId="NPP" toastDuration={6000} />
 ```
 
 ---

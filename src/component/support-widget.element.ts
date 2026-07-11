@@ -44,6 +44,24 @@ interface FormPrefillInput {
   attachments?: string[];
 }
 
+interface CreateRequestResponse {
+  statusCode?: number;
+  message?: string;
+  data?: {
+    url?: string;
+    requestCode?: string;
+  };
+}
+
+interface ToastPayload {
+  type: "success" | "error";
+  title: string;
+  message: string;
+  statusCode?: string;
+  requestCode?: string;
+  url?: string;
+}
+
 type RequiredFieldId = "requester" | "phone-number" | "email" | "content";
 
 export class SupportWidgetElement extends HTMLElement {
@@ -70,6 +88,8 @@ export class SupportWidgetElement extends HTMLElement {
   private prefilledAttachments: string[] = [];
   private previewUrls: string[] = [];
   private closeAfterSuccessTimer: number | null = null;
+  private toastAutoCloseTimer: number | null = null;
+  private toastDuration = 4000;
   public priority: number | undefined;
   public coordinators: string[] = [];
   public emailContacts: string[] = [];
@@ -93,6 +113,7 @@ export class SupportWidgetElement extends HTMLElement {
   disconnectedCallback(): void {
     window.removeEventListener("resize", this.handleResize);
     this.clearCloseAfterSuccessTimer();
+    this.clearToastAutoCloseTimer();
   }
 
   attributeChangedCallback(): void {
@@ -130,6 +151,9 @@ export class SupportWidgetElement extends HTMLElement {
     }
     if (config.emailContacts !== undefined) {
       this.emailContacts = config.emailContacts;
+    }
+    if (config.toastDuration !== undefined) {
+      this.toastDuration = this.normalizeToastDuration(config.toastDuration);
     }
   }
 
@@ -184,6 +208,9 @@ export class SupportWidgetElement extends HTMLElement {
     root
       .getElementById("submit-btn")
       ?.addEventListener("click", () => void this.submit());
+    root.getElementById("toast-close-btn")?.addEventListener("click", () => {
+      this.hideToast();
+    });
 
     this.setupClearableInputs();
 
@@ -632,24 +659,187 @@ export class SupportWidgetElement extends HTMLElement {
     this.clearFieldError("content");
   }
 
-  private setSubmitFeedback(
-    type: "success" | "error",
-    message: string,
+  private showToast(
+    payload: ToastPayload,
+    autoCloseMs = this.toastDuration,
   ): void {
-    const feedbackEl = this.shadowRoot?.getElementById("submit-feedback");
-    if (!feedbackEl) return;
+    const toastEl = this.shadowRoot?.getElementById("toast");
+    const titleEl = this.shadowRoot?.getElementById("toast-title");
+    const statusChipEl = this.shadowRoot?.getElementById("toast-status-chip");
+    const messageEl = this.shadowRoot?.getElementById("toast-message");
+    const statusRow = this.shadowRoot?.getElementById("toast-status-row");
+    const statusCodeEl = this.shadowRoot?.getElementById("toast-status-code");
+    const requestRow = this.shadowRoot?.getElementById("toast-request-row");
+    const requestCodeEl = this.shadowRoot?.getElementById("toast-request-code");
+    const linkEl = this.shadowRoot?.getElementById(
+      "toast-link",
+    ) as HTMLAnchorElement | null;
+    const metaEl = this.shadowRoot?.getElementById("toast-meta");
+    if (
+      !toastEl ||
+      !titleEl ||
+      !statusChipEl ||
+      !messageEl ||
+      !statusRow ||
+      !statusCodeEl ||
+      !requestRow ||
+      !requestCodeEl ||
+      !linkEl ||
+      !metaEl
+    ) {
+      return;
+    }
 
-    feedbackEl.textContent = message;
-    feedbackEl.classList.remove("success", "error");
-    feedbackEl.classList.add(type, "show");
+    this.clearToastAutoCloseTimer();
+    titleEl.textContent = payload.title;
+    statusChipEl.textContent = payload.type === "success" ? "SUCCESS" : "ERROR";
+    messageEl.textContent = payload.message;
+
+    statusCodeEl.textContent = payload.statusCode ?? "";
+    statusRow.classList.toggle("is-hidden", !payload.statusCode);
+
+    requestCodeEl.textContent = payload.requestCode ?? "";
+    requestRow.classList.toggle("is-hidden", !payload.requestCode);
+
+    const hasMeta = Boolean(payload.statusCode || payload.requestCode);
+    metaEl.classList.toggle("is-hidden", !hasMeta);
+
+    if (payload.url) {
+      linkEl.href = payload.url;
+      linkEl.classList.add("show");
+    } else {
+      linkEl.removeAttribute("href");
+      linkEl.classList.remove("show");
+    }
+
+    toastEl.classList.remove("success", "error");
+    toastEl.classList.add(payload.type, "show");
+    this.toastAutoCloseTimer = window.setTimeout(() => {
+      this.hideToast();
+    }, autoCloseMs);
   }
 
-  private clearSubmitFeedback(): void {
-    const feedbackEl = this.shadowRoot?.getElementById("submit-feedback");
-    if (!feedbackEl) return;
+  private hideToast(): void {
+    const toastEl = this.shadowRoot?.getElementById("toast");
+    const titleEl = this.shadowRoot?.getElementById("toast-title");
+    const statusChipEl = this.shadowRoot?.getElementById("toast-status-chip");
+    const messageEl = this.shadowRoot?.getElementById("toast-message");
+    const statusRow = this.shadowRoot?.getElementById("toast-status-row");
+    const statusCodeEl = this.shadowRoot?.getElementById("toast-status-code");
+    const requestRow = this.shadowRoot?.getElementById("toast-request-row");
+    const requestCodeEl = this.shadowRoot?.getElementById("toast-request-code");
+    const linkEl = this.shadowRoot?.getElementById(
+      "toast-link",
+    ) as HTMLAnchorElement | null;
+    const metaEl = this.shadowRoot?.getElementById("toast-meta");
+    if (
+      !toastEl ||
+      !titleEl ||
+      !statusChipEl ||
+      !messageEl ||
+      !statusRow ||
+      !statusCodeEl ||
+      !requestRow ||
+      !requestCodeEl ||
+      !linkEl ||
+      !metaEl
+    ) {
+      return;
+    }
 
-    feedbackEl.textContent = "";
-    feedbackEl.classList.remove("success", "error", "show");
+    this.clearToastAutoCloseTimer();
+    titleEl.textContent = "";
+    statusChipEl.textContent = "";
+    messageEl.textContent = "";
+    statusCodeEl.textContent = "";
+    requestCodeEl.textContent = "";
+    statusRow.classList.remove("is-hidden");
+    requestRow.classList.remove("is-hidden");
+    metaEl.classList.remove("is-hidden");
+    linkEl.removeAttribute("href");
+    linkEl.classList.remove("show");
+    toastEl.classList.remove("success", "error", "show");
+  }
+
+  private buildSuccessToastPayload(
+    result: CreateRequestResponse,
+  ): ToastPayload {
+    const code =
+      typeof result.statusCode === "number" ? String(result.statusCode) : "";
+    const requestCode = result.data?.requestCode?.trim() ?? "";
+    const url = result.data?.url?.trim() ?? "";
+    return {
+      type: "success",
+      title: "Gửi yêu cầu thành công",
+      message:
+        result.message?.trim() || "Yêu cầu đã được tiếp nhận thành công.",
+      statusCode: code || undefined,
+      requestCode: requestCode || undefined,
+      url: url || undefined,
+    };
+  }
+
+  private buildErrorToastPayload(error: unknown): {
+    toast: ToastPayload;
+    eventMessage: string;
+  } {
+    const fallbackMessage = "Có lỗi xảy ra khi gửi yêu cầu.";
+    const rawMessage = error instanceof Error ? error.message : fallbackMessage;
+    const matchedStatus = rawMessage.match(/Request failed \((\d+)\):/);
+    const parsedStatus = matchedStatus ? matchedStatus[1] : "";
+    const afterColon = rawMessage.match(/Request failed \(\d+\):\s*(.*)$/s);
+    const payloadText = afterColon?.[1]?.trim() ?? "";
+
+    let parsedMessage = "";
+    let payloadStatus = "";
+    if (payloadText.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(payloadText) as {
+          statusCode?: number;
+          message?: string;
+        };
+        if (typeof parsed.statusCode === "number") {
+          payloadStatus = String(parsed.statusCode);
+        }
+        if (typeof parsed.message === "string") {
+          parsedMessage = parsed.message.trim();
+        }
+      } catch {
+        // Ignore JSON parse error, fallback to message extraction below.
+      }
+    }
+
+    if (!parsedMessage && payloadText) {
+      parsedMessage = payloadText;
+    }
+    if (!parsedMessage) {
+      parsedMessage = rawMessage || fallbackMessage;
+    }
+
+    const statusCode = payloadStatus || parsedStatus || undefined;
+    return {
+      toast: {
+        type: "error",
+        title: "Gửi yêu cầu thất bại",
+        message: parsedMessage,
+        statusCode,
+      },
+      eventMessage: parsedMessage,
+    };
+  }
+
+  private clearToastAutoCloseTimer(): void {
+    if (this.toastAutoCloseTimer !== null) {
+      window.clearTimeout(this.toastAutoCloseTimer);
+      this.toastAutoCloseTimer = null;
+    }
+  }
+
+  private normalizeToastDuration(value: number): number {
+    if (!Number.isFinite(value) || value <= 0) {
+      return 4000;
+    }
+    return Math.floor(value);
   }
 
   private clearCloseAfterSuccessTimer(): void {
@@ -698,7 +888,6 @@ export class SupportWidgetElement extends HTMLElement {
     this.setInputValue("phone-number", "");
     this.setInputValue("content", "");
     this.clearAllFieldErrors();
-    this.clearSubmitFeedback();
 
     this.selectedFiles = [];
     this.prefilledAttachments = [];
@@ -709,7 +898,7 @@ export class SupportWidgetElement extends HTMLElement {
   private async submit(): Promise<void> {
     try {
       this.clearCloseAfterSuccessTimer();
-      this.clearSubmitFeedback();
+      this.hideToast();
 
       if (!this.validateRequiredFields()) {
         this.dispatchEvent(
@@ -778,8 +967,12 @@ export class SupportWidgetElement extends HTMLElement {
       }
 
       const baseUrl = resolveBaseUrl(this.config);
-      const result = await createSupportRequest(baseUrl, formData);
+      const result = (await createSupportRequest(
+        baseUrl,
+        formData,
+      )) as CreateRequestResponse;
 
+      this.showToast(this.buildSuccessToastPayload(result));
       this.dispatchEvent(
         new CustomEvent(WIDGET_EVENTS.SUBMIT_SUCCESS, {
           bubbles: true,
@@ -790,11 +983,12 @@ export class SupportWidgetElement extends HTMLElement {
         this.close();
       }, 1200);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
+      const errorPayload = this.buildErrorToastPayload(error);
+      this.showToast(errorPayload.toast);
       this.dispatchEvent(
         new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
           bubbles: true,
-          detail: { message },
+          detail: { message: errorPayload.eventMessage },
         }),
       );
     }

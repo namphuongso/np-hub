@@ -90,6 +90,19 @@ widget.setFormPrefill({
 
 Prefill does **not** skip validation. Name, email, phone, and content remain required on submit.
 
+### Submit feedback toast
+
+On submit **success** or **API error**, a centered toast appears with the result message. It auto-closes after `toastDuration` milliseconds (default `4000`) or the user can dismiss it with `×`.
+
+Validation errors (missing required fields) do **not** show a toast — only inline field highlighting.
+
+```js
+widget.setConfig({
+  projectId: "NPP",
+  toastDuration: 6000,
+});
+```
+
 ---
 
 ## React
@@ -151,6 +164,19 @@ export default function App() {
   }}
 />
 ```
+
+### Submit feedback toast
+
+```tsx
+<SupportWidget
+  projectId="NPP"
+  toastDuration={6000}
+  onSubmitSuccess={(detail) => console.log("Success:", detail)}
+  onSubmitError={(error) => console.error("Error:", error)}
+/>
+```
+
+`toastDuration` controls how long the success/error toast stays visible before auto-closing. Users can also close it manually.
 
 ---
 

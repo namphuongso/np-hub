@@ -111,8 +111,6 @@
       </div>
     </div>
 
-    <p id="submit-feedback" class="submit-feedback" aria-live="polite"></p>
-
     <div class="actions">
       <button id="cancel-btn" class="btn btn-secondary" type="button">
         Hủy
@@ -121,5 +119,49 @@
         Tạo yêu cầu
       </button>
     </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+  <div class="toast-card">
+    <div class="toast-top">
+      <div class="toast-icon" aria-hidden="true">
+        <svg class="icon-success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <svg class="icon-error" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="toast-head-copy">
+        <p id="toast-title" class="toast-title"></p>
+        <span id="toast-status-chip" class="toast-status-chip"></span>
+      </div>
+      <button id="toast-close-btn" class="toast-close-btn" type="button" aria-label="Đóng thông báo">
+        ×
+      </button>
+    </div>
+    <p id="toast-message" class="toast-message"></p>
+    <div id="toast-meta" class="toast-meta">
+      <div id="toast-status-row" class="toast-meta-row">
+        <span class="toast-meta-label">Status</span>
+        <span id="toast-status-code" class="toast-meta-value"></span>
+      </div>
+      <div id="toast-request-row" class="toast-meta-row">
+        <span class="toast-meta-label">Request code</span>
+        <span id="toast-request-code" class="toast-meta-value"></span>
+      </div>
+    </div>
+    <a
+      id="toast-link"
+      class="toast-link"
+      href="#"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Mở Support Center
+    </a>
   </div>
 </div>
