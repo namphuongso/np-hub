@@ -31,14 +31,14 @@ function bindDemoActions(widget) {
 
         title.textContent = "Gửi yêu cầu thành công";
         chip.textContent = "SUCCESS";
-        msg.textContent =
-          "Yêu cầu hỗ trợ của bạn đã được gửi thành công đến hệ thống NP Hub.";
+        msg.textContent = "Successful.";
         statusVal.textContent = "200";
-        reqVal.textContent = "REQ-582910";
+        reqVal.textContent = "2607-230-1322";
         statusRow.classList.remove("is-hidden");
         reqRow.classList.remove("is-hidden");
         meta.classList.remove("is-hidden");
-        link.href = "https://namphuongso.vn";
+        link.href =
+          "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322";
         link.classList.add("show");
 
         toast.classList.remove("error");
@@ -73,12 +73,11 @@ function bindDemoActions(widget) {
 
         title.textContent = "Gửi yêu cầu thất bại";
         chip.textContent = "ERROR";
-        msg.textContent =
-          "Không thể kết nối đến máy chủ API. Vui lòng kiểm tra lại kết nối Internet và thử lại sau ít phút.";
-        statusVal.textContent = "500";
-        reqVal.textContent = "REQ-ERR-94021";
+        msg.textContent = "Phone number is invalid";
+        statusVal.textContent = "400";
+        reqVal.textContent = "";
         statusRow.classList.remove("is-hidden");
-        reqRow.classList.remove("is-hidden");
+        reqRow.classList.add("is-hidden");
         meta.classList.remove("is-hidden");
         link.removeAttribute("href");
         link.classList.remove("show");

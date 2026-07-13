@@ -4,6 +4,13 @@ import {
   validateUser,
   validateWidgetConfig,
 } from "../core/validation/request-validator";
+import {
+  isCreateRequestSuccess,
+  mapCreateRequestFailure,
+  mapCreateRequestSuccess,
+  mapHttpClientError,
+  type SubmitToastContent,
+} from "../services/api/create-request-response";
 import { createSupportRequest } from "../services/api/support-api";
 import type {
   SupportSubmissionInput,
@@ -44,22 +51,8 @@ interface FormPrefillInput {
   attachments?: string[];
 }
 
-interface CreateRequestResponse {
-  statusCode?: number;
-  message?: string;
-  data?: {
-    url?: string;
-    requestCode?: string;
-  };
-}
-
-interface ToastPayload {
-  type: "success" | "error";
+interface ToastPayload extends SubmitToastContent {
   title: string;
-  message: string;
-  statusCode?: string;
-  requestCode?: string;
-  url?: string;
 }
 
 type RequiredFieldId = "requester" | "phone-number" | "email" | "content";
@@ -761,70 +754,13 @@ export class SupportWidgetElement extends HTMLElement {
     toastEl.classList.remove("success", "error", "show");
   }
 
-  private buildSuccessToastPayload(
-    result: CreateRequestResponse,
-  ): ToastPayload {
-    const code =
-      typeof result.statusCode === "number" ? String(result.statusCode) : "";
-    const requestCode = result.data?.requestCode?.trim() ?? "";
-    const url = result.data?.url?.trim() ?? "";
+  private toToastPayload(content: SubmitToastContent): ToastPayload {
     return {
-      type: "success",
-      title: "Gửi yêu cầu thành công",
-      message:
-        result.message?.trim() || "Yêu cầu đã được tiếp nhận thành công.",
-      statusCode: code || undefined,
-      requestCode: requestCode || undefined,
-      url: url || undefined,
-    };
-  }
-
-  private buildErrorToastPayload(error: unknown): {
-    toast: ToastPayload;
-    eventMessage: string;
-  } {
-    const fallbackMessage = "Có lỗi xảy ra khi gửi yêu cầu.";
-    const rawMessage = error instanceof Error ? error.message : fallbackMessage;
-    const matchedStatus = rawMessage.match(/Request failed \((\d+)\):/);
-    const parsedStatus = matchedStatus ? matchedStatus[1] : "";
-    const afterColon = rawMessage.match(/Request failed \(\d+\):\s*(.*)$/s);
-    const payloadText = afterColon?.[1]?.trim() ?? "";
-
-    let parsedMessage = "";
-    let payloadStatus = "";
-    if (payloadText.startsWith("{")) {
-      try {
-        const parsed = JSON.parse(payloadText) as {
-          statusCode?: number;
-          message?: string;
-        };
-        if (typeof parsed.statusCode === "number") {
-          payloadStatus = String(parsed.statusCode);
-        }
-        if (typeof parsed.message === "string") {
-          parsedMessage = parsed.message.trim();
-        }
-      } catch {
-        // Ignore JSON parse error, fallback to message extraction below.
-      }
-    }
-
-    if (!parsedMessage && payloadText) {
-      parsedMessage = payloadText;
-    }
-    if (!parsedMessage) {
-      parsedMessage = rawMessage || fallbackMessage;
-    }
-
-    const statusCode = payloadStatus || parsedStatus || undefined;
-    return {
-      toast: {
-        type: "error",
-        title: "Gửi yêu cầu thất bại",
-        message: parsedMessage,
-        statusCode,
-      },
-      eventMessage: parsedMessage,
+      ...content,
+      title:
+        content.type === "success"
+          ? "Gửi yêu cầu thành công"
+          : "Gửi yêu cầu thất bại",
     };
   }
 
@@ -896,28 +832,28 @@ export class SupportWidgetElement extends HTMLElement {
   }
 
   private async submit(): Promise<void> {
+    this.clearCloseAfterSuccessTimer();
+    this.hideToast();
+
+    if (!this.validateRequiredFields()) {
+      this.dispatchEvent(
+        new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
+          bubbles: true,
+          detail: { message: "Please fill in all required fields." },
+        }),
+      );
+      return;
+    }
+
+    const user: SupportUser = {
+      name: this.getInputValue("requester"),
+      email: this.getInputValue("email"),
+      phoneNumber: this.getInputValue("phone-number"),
+    };
+
+    this.user = user;
+
     try {
-      this.clearCloseAfterSuccessTimer();
-      this.hideToast();
-
-      if (!this.validateRequiredFields()) {
-        this.dispatchEvent(
-          new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
-            bubbles: true,
-            detail: { message: "Please fill in all required fields." },
-          }),
-        );
-        return;
-      }
-
-      const user: SupportUser = {
-        name: this.getInputValue("requester"),
-        email: this.getInputValue("email"),
-        phoneNumber: this.getInputValue("phone-number"),
-      };
-
-      this.user = user;
-
       validateWidgetConfig(this.config);
       validateUser(user);
 
@@ -927,52 +863,75 @@ export class SupportWidgetElement extends HTMLElement {
         attachments: [], // dummy value for local validation of required content field
       };
       validateSubmission(submission);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invalid input.";
+      this.dispatchEvent(
+        new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
+          bubbles: true,
+          detail: { message },
+        }),
+      );
+      return;
+    }
 
-      // Create FormData to send request as multipart/form-data
-      const formData = new FormData();
-      formData.append("Requester", user.name);
-      formData.append("PhoneNumber", user.phoneNumber);
-      formData.append("Email", user.email);
-      formData.append("Content", content);
-      if (this.config.projectId?.trim()) {
-        formData.append("ProjectId", this.config.projectId.trim());
-      }
-      if (typeof this.priority === "number") {
-        formData.append("Priority", String(this.priority));
-      }
+    const content = this.getInputValue("content");
 
-      // Fetch prefilled attachments and convert them to Files
-      for (const url of this.prefilledAttachments) {
-        const file = await urlToFile(url);
-        if (file) {
-          formData.append("Attachments", file);
-        }
-      }
+    // Create FormData to send request as multipart/form-data
+    const formData = new FormData();
+    formData.append("Requester", user.name);
+    formData.append("PhoneNumber", user.phoneNumber);
+    formData.append("Email", user.email);
+    formData.append("Content", content);
+    if (this.config.projectId?.trim()) {
+      formData.append("ProjectId", this.config.projectId.trim());
+    }
+    if (typeof this.priority === "number") {
+      formData.append("Priority", String(this.priority));
+    }
 
-      // Add newly selected files
-      for (const file of this.selectedFiles) {
+    // Fetch prefilled attachments and convert them to Files
+    for (const url of this.prefilledAttachments) {
+      const file = await urlToFile(url);
+      if (file) {
         formData.append("Attachments", file);
       }
+    }
 
-      // Add coordinators and emailContacts
-      if (this.coordinators.length > 0) {
-        this.coordinators.forEach((coord) =>
-          formData.append("Coordinators", coord),
-        );
-      }
-      if (this.emailContacts.length > 0) {
-        this.emailContacts.forEach((contact) =>
-          formData.append("EmailContacts", contact),
-        );
-      }
+    // Add newly selected files
+    for (const file of this.selectedFiles) {
+      formData.append("Attachments", file);
+    }
 
+    // Add coordinators and emailContacts
+    if (this.coordinators.length > 0) {
+      this.coordinators.forEach((coord) =>
+        formData.append("Coordinators", coord),
+      );
+    }
+    if (this.emailContacts.length > 0) {
+      this.emailContacts.forEach((contact) =>
+        formData.append("EmailContacts", contact),
+      );
+    }
+
+    try {
       const baseUrl = resolveBaseUrl(this.config);
-      const result = (await createSupportRequest(
-        baseUrl,
-        formData,
-      )) as CreateRequestResponse;
+      const result = await createSupportRequest(baseUrl, formData);
 
-      this.showToast(this.buildSuccessToastPayload(result));
+      if (!isCreateRequestSuccess(result)) {
+        const failureContent = mapCreateRequestFailure(result);
+        this.showToast(this.toToastPayload(failureContent));
+        this.dispatchEvent(
+          new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
+            bubbles: true,
+            detail: { message: failureContent.message, response: result },
+          }),
+        );
+        return;
+      }
+
+      const successContent = mapCreateRequestSuccess(result);
+      this.showToast(this.toToastPayload(successContent));
       this.dispatchEvent(
         new CustomEvent(WIDGET_EVENTS.SUBMIT_SUCCESS, {
           bubbles: true,
@@ -983,12 +942,12 @@ export class SupportWidgetElement extends HTMLElement {
         this.close();
       }, 1200);
     } catch (error) {
-      const errorPayload = this.buildErrorToastPayload(error);
-      this.showToast(errorPayload.toast);
+      const errorContent = mapHttpClientError(error);
+      this.showToast(this.toToastPayload(errorContent));
       this.dispatchEvent(
         new CustomEvent(WIDGET_EVENTS.SUBMIT_ERROR, {
           bubbles: true,
-          detail: { message: errorPayload.eventMessage },
+          detail: { message: errorContent.message },
         }),
       );
     }

@@ -1,13 +1,7 @@
+import type { CreateRequestResponse } from "./create-request-response";
 import { postFormData } from "./http-client";
 
-interface CreateRequestResponse {
-  statusCode?: number;
-  message?: string;
-  data?: {
-    url?: string;
-    requestCode?: string;
-  };
-}
+export type { CreateRequestResponse };
 
 export async function createSupportRequest(
   baseUrl: string,
