@@ -1,6 +1,6 @@
 {
   "name": "@namphuongtechnologi/np-hub",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "NP Hub Web Component toolkit for support flows.",
   "type": "module",
   "main": "./dist/index.cjs",

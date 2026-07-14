@@ -82,6 +82,7 @@ export class SupportWidgetElement extends HTMLElement {
   private previewUrls: string[] = [];
   private closeAfterSuccessTimer: number | null = null;
   private toastAutoCloseTimer: number | null = null;
+  private toastCountdownInterval: number | null = null;
   private toastDuration = 4000;
   public priority: number | undefined;
   public coordinators: string[] = [];
@@ -107,6 +108,7 @@ export class SupportWidgetElement extends HTMLElement {
     window.removeEventListener("resize", this.handleResize);
     this.clearCloseAfterSuccessTimer();
     this.clearToastAutoCloseTimer();
+    this.clearToastCountdown();
   }
 
   attributeChangedCallback(): void {
@@ -658,100 +660,179 @@ export class SupportWidgetElement extends HTMLElement {
   ): void {
     const toastEl = this.shadowRoot?.getElementById("toast");
     const titleEl = this.shadowRoot?.getElementById("toast-title");
-    const statusChipEl = this.shadowRoot?.getElementById("toast-status-chip");
     const messageEl = this.shadowRoot?.getElementById("toast-message");
-    const statusRow = this.shadowRoot?.getElementById("toast-status-row");
-    const statusCodeEl = this.shadowRoot?.getElementById("toast-status-code");
-    const requestRow = this.shadowRoot?.getElementById("toast-request-row");
+    const detailsEl = this.shadowRoot?.getElementById("toast-details");
     const requestCodeEl = this.shadowRoot?.getElementById("toast-request-code");
+    const linkRowEl = this.shadowRoot?.getElementById("toast-link-row");
     const linkEl = this.shadowRoot?.getElementById(
       "toast-link",
     ) as HTMLAnchorElement | null;
-    const metaEl = this.shadowRoot?.getElementById("toast-meta");
+    const countdownEl = this.shadowRoot?.getElementById("toast-countdown");
+    const countdownSecondsEl = this.shadowRoot?.getElementById(
+      "toast-countdown-seconds",
+    );
+    const countdownBarEl = this.shadowRoot?.getElementById(
+      "toast-countdown-bar",
+    );
     if (
       !toastEl ||
       !titleEl ||
-      !statusChipEl ||
       !messageEl ||
-      !statusRow ||
-      !statusCodeEl ||
-      !requestRow ||
+      !detailsEl ||
       !requestCodeEl ||
+      !linkRowEl ||
       !linkEl ||
-      !metaEl
+      !countdownBarEl
     ) {
       return;
     }
 
     this.clearToastAutoCloseTimer();
+    this.clearToastCountdown();
+
     titleEl.textContent = payload.title;
-    statusChipEl.textContent = payload.type === "success" ? "SUCCESS" : "ERROR";
     messageEl.textContent = payload.message;
 
-    statusCodeEl.textContent = payload.statusCode ?? "";
-    statusRow.classList.toggle("is-hidden", !payload.statusCode);
+    const hasRequestCode = Boolean(payload.requestCode);
+    const hasUrl = Boolean(payload.url);
+    const showDetails =
+      payload.type === "success" && (hasRequestCode || hasUrl);
 
-    requestCodeEl.textContent = payload.requestCode ?? "";
-    requestRow.classList.toggle("is-hidden", !payload.requestCode);
-
-    const hasMeta = Boolean(payload.statusCode || payload.requestCode);
-    metaEl.classList.toggle("is-hidden", !hasMeta);
-
-    if (payload.url) {
-      linkEl.href = payload.url;
-      linkEl.classList.add("show");
+    if (showDetails) {
+      requestCodeEl.textContent = payload.requestCode ?? "—";
+      if (hasUrl && payload.url) {
+        linkEl.href = payload.url;
+        linkEl.textContent = payload.url;
+        linkEl.title = payload.url;
+        linkRowEl.classList.remove("is-hidden");
+      } else {
+        linkEl.removeAttribute("href");
+        linkEl.textContent = "";
+        linkEl.removeAttribute("title");
+        linkRowEl.classList.add("is-hidden");
+      }
+      detailsEl.classList.remove("is-hidden");
     } else {
+      requestCodeEl.textContent = "";
       linkEl.removeAttribute("href");
-      linkEl.classList.remove("show");
+      linkEl.textContent = "";
+      linkEl.removeAttribute("title");
+      linkRowEl.classList.add("is-hidden");
+      detailsEl.classList.add("is-hidden");
     }
+
+    const closeMs =
+      payload.type === "success" && hasRequestCode
+        ? Math.max(autoCloseMs, 8000)
+        : autoCloseMs;
 
     toastEl.classList.remove("success", "error");
     toastEl.classList.add(payload.type, "show");
+    this.startToastCountdown(
+      closeMs,
+      countdownEl ?? null,
+      countdownSecondsEl ?? null,
+      countdownBarEl,
+    );
     this.toastAutoCloseTimer = window.setTimeout(() => {
       this.hideToast();
-    }, autoCloseMs);
+    }, closeMs);
   }
 
   private hideToast(): void {
     const toastEl = this.shadowRoot?.getElementById("toast");
     const titleEl = this.shadowRoot?.getElementById("toast-title");
-    const statusChipEl = this.shadowRoot?.getElementById("toast-status-chip");
     const messageEl = this.shadowRoot?.getElementById("toast-message");
-    const statusRow = this.shadowRoot?.getElementById("toast-status-row");
-    const statusCodeEl = this.shadowRoot?.getElementById("toast-status-code");
-    const requestRow = this.shadowRoot?.getElementById("toast-request-row");
+    const detailsEl = this.shadowRoot?.getElementById("toast-details");
     const requestCodeEl = this.shadowRoot?.getElementById("toast-request-code");
+    const linkRowEl = this.shadowRoot?.getElementById("toast-link-row");
     const linkEl = this.shadowRoot?.getElementById(
       "toast-link",
     ) as HTMLAnchorElement | null;
-    const metaEl = this.shadowRoot?.getElementById("toast-meta");
+    const countdownEl = this.shadowRoot?.getElementById("toast-countdown");
+    const countdownSecondsEl = this.shadowRoot?.getElementById(
+      "toast-countdown-seconds",
+    );
+    const countdownBarEl = this.shadowRoot?.getElementById(
+      "toast-countdown-bar",
+    );
     if (
       !toastEl ||
       !titleEl ||
-      !statusChipEl ||
       !messageEl ||
-      !statusRow ||
-      !statusCodeEl ||
-      !requestRow ||
+      !detailsEl ||
       !requestCodeEl ||
+      !linkRowEl ||
       !linkEl ||
-      !metaEl
+      !countdownBarEl
     ) {
       return;
     }
 
     this.clearToastAutoCloseTimer();
+    this.clearToastCountdown();
     titleEl.textContent = "";
-    statusChipEl.textContent = "";
     messageEl.textContent = "";
-    statusCodeEl.textContent = "";
     requestCodeEl.textContent = "";
-    statusRow.classList.remove("is-hidden");
-    requestRow.classList.remove("is-hidden");
-    metaEl.classList.remove("is-hidden");
     linkEl.removeAttribute("href");
-    linkEl.classList.remove("show");
+    linkEl.textContent = "";
+    linkEl.removeAttribute("title");
+    linkRowEl.classList.add("is-hidden");
+    detailsEl.classList.add("is-hidden");
+    if (countdownSecondsEl) {
+      countdownSecondsEl.textContent = "";
+    }
+    countdownBarEl.style.strokeDashoffset = "0";
+    if (countdownEl) {
+      countdownEl.classList.add("is-hidden");
+    }
     toastEl.classList.remove("success", "error", "show");
+  }
+
+  private startToastCountdown(
+    totalMs: number,
+    countdownEl: HTMLElement | null,
+    secondsEl: HTMLElement | null,
+    barEl: HTMLElement,
+  ): void {
+    let remainingMs = totalMs;
+
+    const updateCountdown = (): void => {
+      const seconds = Math.max(1, Math.ceil(remainingMs / 1000));
+      if (secondsEl) {
+        secondsEl.textContent = `${seconds}s`;
+      }
+      
+      const percent = Math.max(0, Math.min(1, remainingMs / totalMs));
+      const offset = 94.25 * (1 - percent);
+      barEl.style.strokeDashoffset = `${offset}`;
+    };
+
+    updateCountdown();
+    if (countdownEl) {
+      countdownEl.classList.remove("is-hidden");
+    }
+
+    this.toastCountdownInterval = window.setInterval(() => {
+      remainingMs -= 100;
+      if (remainingMs <= 0) {
+        remainingMs = 0;
+        barEl.style.strokeDashoffset = "94.25";
+        if (secondsEl) {
+          secondsEl.textContent = "0s";
+        }
+        this.clearToastCountdown();
+        return;
+      }
+      updateCountdown();
+    }, 100);
+  }
+
+  private clearToastCountdown(): void {
+    if (this.toastCountdownInterval !== null) {
+      window.clearInterval(this.toastCountdownInterval);
+      this.toastCountdownInterval = null;
+    }
   }
 
   private toToastPayload(content: SubmitToastContent): ToastPayload {

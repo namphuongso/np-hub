@@ -19,27 +19,28 @@ function bindDemoActions(widget) {
       if (hub && hub.shadowRoot) {
         var toast = hub.shadowRoot.getElementById("toast");
         var title = hub.shadowRoot.getElementById("toast-title");
-        var chip = hub.shadowRoot.getElementById("toast-status-chip");
         var msg = hub.shadowRoot.getElementById("toast-message");
-        var statusVal = hub.shadowRoot.getElementById("toast-status-code");
+        var details = hub.shadowRoot.getElementById("toast-details");
         var reqVal = hub.shadowRoot.getElementById("toast-request-code");
+        var linkRow = hub.shadowRoot.getElementById("toast-link-row");
         var link = hub.shadowRoot.getElementById("toast-link");
-        var meta = hub.shadowRoot.getElementById("toast-meta");
-        var statusRow = hub.shadowRoot.getElementById("toast-status-row");
-        var reqRow = hub.shadowRoot.getElementById("toast-request-row");
+        var countdown = hub.shadowRoot.getElementById("toast-countdown");
+        var countdownSeconds = hub.shadowRoot.getElementById("toast-countdown-seconds");
+        var countdownBar = hub.shadowRoot.getElementById("toast-countdown-bar");
         var closeBtn = hub.shadowRoot.getElementById("toast-close-btn");
 
         title.textContent = "Gửi yêu cầu thành công";
-        chip.textContent = "SUCCESS";
         msg.textContent = "Successful.";
-        statusVal.textContent = "200";
         reqVal.textContent = "2607-230-1322";
-        statusRow.classList.remove("is-hidden");
-        reqRow.classList.remove("is-hidden");
-        meta.classList.remove("is-hidden");
+        details.classList.remove("is-hidden");
         link.href =
           "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322";
-        link.classList.add("show");
+        link.textContent =
+          "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322";
+        linkRow.classList.remove("is-hidden");
+        if (countdown) countdown.classList.remove("is-hidden");
+        if (countdownSeconds) countdownSeconds.textContent = "8s";
+        countdownBar.style.strokeDashoffset = "0";
 
         toast.classList.remove("error");
         toast.classList.add("success", "show");
@@ -61,26 +62,19 @@ function bindDemoActions(widget) {
       if (hub && hub.shadowRoot) {
         var toast = hub.shadowRoot.getElementById("toast");
         var title = hub.shadowRoot.getElementById("toast-title");
-        var chip = hub.shadowRoot.getElementById("toast-status-chip");
         var msg = hub.shadowRoot.getElementById("toast-message");
-        var statusVal = hub.shadowRoot.getElementById("toast-status-code");
-        var reqVal = hub.shadowRoot.getElementById("toast-request-code");
-        var link = hub.shadowRoot.getElementById("toast-link");
-        var meta = hub.shadowRoot.getElementById("toast-meta");
-        var statusRow = hub.shadowRoot.getElementById("toast-status-row");
-        var reqRow = hub.shadowRoot.getElementById("toast-request-row");
+        var details = hub.shadowRoot.getElementById("toast-details");
+        var countdown = hub.shadowRoot.getElementById("toast-countdown");
+        var countdownSeconds = hub.shadowRoot.getElementById("toast-countdown-seconds");
+        var countdownBar = hub.shadowRoot.getElementById("toast-countdown-bar");
         var closeBtn = hub.shadowRoot.getElementById("toast-close-btn");
 
         title.textContent = "Gửi yêu cầu thất bại";
-        chip.textContent = "ERROR";
         msg.textContent = "Phone number is invalid";
-        statusVal.textContent = "400";
-        reqVal.textContent = "";
-        statusRow.classList.remove("is-hidden");
-        reqRow.classList.add("is-hidden");
-        meta.classList.remove("is-hidden");
-        link.removeAttribute("href");
-        link.classList.remove("show");
+        details.classList.add("is-hidden");
+        if (countdown) countdown.classList.remove("is-hidden");
+        if (countdownSeconds) countdownSeconds.textContent = "6s";
+        countdownBar.style.strokeDashoffset = "0";
 
         toast.classList.remove("success");
         toast.classList.add("error", "show");

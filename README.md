@@ -121,21 +121,21 @@ export default function App() {
 
 ### `setConfig` / React props
 
-| Name            | Required | Default       | Description                                      |
-| --------------- | -------- | ------------- | ------------------------------------------------ |
-| `projectId`     | No       | —             | Project code forwarded to the API                |
-| `isDev`         | No       | `false`       | `true` → Development API; otherwise Production   |
-| `priority`      | No       | `0`           | Request priority                                 |
-| `coordinators`  | No       | `[]`          | Coordinator email list                           |
-| `emailContacts` | No       | `[]`          | Contact emails that receive the notification     |
-| `toastDuration` | No       | `4000`        | Toast auto-close delay in milliseconds           |
+| Name            | Required | Default | Description                                    |
+| --------------- | -------- | ------- | ---------------------------------------------- |
+| `projectId`     | No       | —       | Project code forwarded to the API              |
+| `isDev`         | No       | `false` | `true` → Development API; otherwise Production |
+| `priority`      | No       | `0`     | Request priority                               |
+| `coordinators`  | No       | `[]`    | Coordinator email list                         |
+| `emailContacts` | No       | `[]`    | Contact emails that receive the notification   |
+| `toastDuration` | No       | `4000`  | Toast auto-close delay in milliseconds         |
 
 ### Prefill (optional)
 
-| Name          | Method / prop     | Description                                                                 |
-| ------------- | ----------------- | --------------------------------------------------------------------------- |
-| User          | `setUser` / `user` | Prefills name, email, phone. Form UI still requires these fields on submit. |
-| Form content  | `setFormPrefill` / `formPrefill` | Prefills `content` and `attachments`.                              |
+| Name         | Method / prop                    | Description                                                                 |
+| ------------ | -------------------------------- | --------------------------------------------------------------------------- |
+| User         | `setUser` / `user`               | Prefills name, email, phone. Form UI still requires these fields on submit. |
+| Form content | `setFormPrefill` / `formPrefill` | Prefills `content` and `attachments`.                                       |
 
 ```js
 // Web Component
@@ -171,11 +171,11 @@ widget.setFormPrefill({
 
 Default: **65×65px**, anchored **20px** from the bottom-right corner.
 
-| Attribute / prop       | Description                                      |
-| ---------------------- | ------------------------------------------------ |
-| `width` / `height`     | Launcher size (default `65`)                     |
-| `right` / `bottom`     | Offset from bottom-right (default `20`)          |
-| `left` / `top`         | Use instead of `right` / `bottom` for other corners |
+| Attribute / prop   | Description                                         |
+| ------------------ | --------------------------------------------------- |
+| `width` / `height` | Launcher size (default `65`)                        |
+| `right` / `bottom` | Offset from bottom-right (default `20`)             |
+| `left` / `top`     | Use instead of `right` / `bottom` for other corners |
 
 Numeric values from React props are treated as pixels. After the user drags the launcher, the stored `localStorage` position takes precedence.
 
@@ -192,13 +192,13 @@ widget.setAttribute("bottom", "24");
 
 After a successful API submit or an API/exception failure, the widget shows a **centered toast** with the result message.
 
-| Behavior | Detail |
-| -------- | ------ |
-| When shown | Submit success, or API / runtime error |
-| When hidden | Missing required fields (only inline field highlighting) |
-| Auto-close | After `toastDuration` ms (default `4000`) |
-| Manual close | User can dismiss via the `×` button |
-| Success follow-up | Modal closes automatically ~1.2s after success |
+| Behavior          | Detail                                                   |
+| ----------------- | -------------------------------------------------------- |
+| When shown        | Submit success, or API / runtime error                   |
+| When hidden       | Missing required fields (only inline field highlighting) |
+| Auto-close        | After `toastDuration` ms (default `4000`)                |
+| Manual close      | User can dismiss via the `×` button                      |
+| Success follow-up | Modal closes automatically ~1.2s after success           |
 
 ```js
 widget.setConfig({
@@ -217,53 +217,53 @@ widget.setConfig({
 
 ### Events (Web Component)
 
-| Event                   | When                              |
-| ----------------------- | --------------------------------- |
-| `np-hub-open`           | Modal opens                       |
-| `np-hub-close`          | Modal closes                      |
-| `np-hub-submit-success` | API accepted the support request  |
-| `np-hub-submit-error`   | Validation or API failure         |
+| Event                   | When                             |
+| ----------------------- | -------------------------------- |
+| `np-hub-open`           | Modal opens                      |
+| `np-hub-close`          | Modal closes                     |
+| `np-hub-submit-success` | API accepted the support request |
+| `np-hub-submit-error`   | Validation or API failure        |
 
 React equivalent props: `onOpen`, `onClose`, `onSubmitSuccess`, `onSubmitError`.
 
 ### Methods (Web Component)
 
-| Method                 | Description                    |
-| ---------------------- | ------------------------------ |
-| `setConfig(config)`    | Apply project / API settings   |
-| `setUser(user)`        | Prefill requester fields       |
-| `setFormPrefill(data)` | Prefill content / attachments  |
-| `open()` / `close()`   | Open or close the modal        |
+| Method                 | Description                   |
+| ---------------------- | ----------------------------- |
+| `setConfig(config)`    | Apply project / API settings  |
+| `setUser(user)`        | Prefill requester fields      |
+| `setFormPrefill(data)` | Prefill content / attachments |
+| `open()` / `close()`   | Open or close the modal       |
 
 ---
 
 ## API environments
 
-| Environment                         | Base URL                                          |
-| ----------------------------------- | ------------------------------------------------- |
-| Production (default)                | `https://namphuong-api.azurewebsites.net`         |
-| Development (`isDev` / `is-dev`)    | `https://namphuong-api-dev.azurewebsites.net`     |
+| Environment                      | Base URL                                      |
+| -------------------------------- | --------------------------------------------- |
+| Production (default)             | `https://namphuong-api.azurewebsites.net`     |
+| Development (`isDev` / `is-dev`) | `https://namphuong-api-dev.azurewebsites.net` |
 
 ---
 
 ## Troubleshooting
 
-| Error                                          | Resolution                                                                 |
-| ---------------------------------------------- | -------------------------------------------------------------------------- |
-| `projectId cannot be empty.`                   | If provided, `projectId` / `project-id` must be a non-empty string         |
-| `user.name/email/phoneNumber is required.`     | Requester fields are required on submit; `user` only prefills              |
-| `Content is required.`                         | User must enter message content before submit                              |
-| API call fails in local testing                | Set `isDev` / `is-dev` when targeting the Development environment          |
+| Error                                      | Resolution                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `projectId cannot be empty.`               | If provided, `projectId` / `project-id` must be a non-empty string |
+| `user.name/email/phoneNumber is required.` | Requester fields are required on submit; `user` only prefills      |
+| `Content is required.`                     | User must enter message content before submit                      |
+| API call fails in local testing            | Set `isDev` / `is-dev` when targeting the Development environment  |
 
 ---
 
 ## Documentation
 
-| Document | Audience |
-| -------- | -------- |
-| [Usage (static & React)](./docs/USAGE_STATIC_REACT.md) | Integrators |
-| [Developer guide](./docs/DEVELOPER_GUIDE.md) | Contributors |
-| [Public release](./docs/PUBLIC_RELEASE.md) | Maintainers |
+| Document                                               | Audience     |
+| ------------------------------------------------------ | ------------ |
+| [Usage (static & React)](./docs/USAGE_STATIC_REACT.md) | Integrators  |
+| [Developer guide](./docs/DEVELOPER_GUIDE.md)           | Contributors |
+| [Public release](./docs/PUBLIC_RELEASE.md)             | Maintainers  |
 
 ---
 

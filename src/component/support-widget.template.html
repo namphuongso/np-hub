@@ -63,7 +63,13 @@
 
       <div class="field full">
         <label>File đính kèm</label>
-        <div id="upload-trigger" class="upload-zone" role="button" tabindex="0" aria-label="Tải lên tệp">
+        <div
+          id="upload-trigger"
+          class="upload-zone"
+          role="button"
+          tabindex="0"
+          aria-label="Tải lên tệp"
+        >
           <input id="file-input" type="file" multiple style="display: none" />
           <div class="upload-icon-wrapper">
             <svg
@@ -84,8 +90,12 @@
             </svg>
           </div>
           <div class="upload-text-container">
-            <span class="upload-main-text">Chọn tệp tải lên hoặc kéo thả vào đây</span>
-            <span class="upload-sub-text">Hỗ trợ dán ảnh hoặc tệp (Ctrl+V / Cmd+V) để đính kèm nhanh</span>
+            <span class="upload-main-text"
+              >Chọn tệp tải lên hoặc kéo thả vào đây</span
+            >
+            <span class="upload-sub-text"
+              >Hỗ trợ dán ảnh hoặc tệp (Ctrl+V / Cmd+V) để đính kèm nhanh</span
+            >
           </div>
         </div>
         <div id="file-list" class="file-list"></div>
@@ -122,46 +132,116 @@
   </div>
 </div>
 
-<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+<div
+  id="toast"
+  class="toast"
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+>
   <div class="toast-card">
-    <div class="toast-top">
+    <div class="toast-main">
       <div class="toast-icon" aria-hidden="true">
-        <svg class="icon-success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="icon-success"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-        <svg class="icon-error" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="icon-error"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
       </div>
-      <div class="toast-head-copy">
-        <p id="toast-title" class="toast-title"></p>
-        <span id="toast-status-chip" class="toast-status-chip"></span>
+      <div class="toast-body">
+        <h4 id="toast-title" class="toast-title"></h4>
+        <p id="toast-message" class="toast-message"></p>
       </div>
-      <button id="toast-close-btn" class="toast-close-btn" type="button" aria-label="Đóng thông báo">
-        ×
-      </button>
+      <div class="toast-close-wrapper">
+        <svg
+          class="toast-countdown-ring"
+          width="36"
+          height="36"
+          viewBox="0 0 36 36"
+        >
+          <circle
+            class="ring-track"
+            cx="18"
+            cy="18"
+            r="15"
+            fill="none"
+            stroke="#e2e8f0"
+            stroke-width="2.5"
+          ></circle>
+          <circle
+            id="toast-countdown-bar"
+            class="ring-bar"
+            cx="18"
+            cy="18"
+            r="15"
+            fill="none"
+            stroke="var(--toast-status-color)"
+            stroke-width="2.5"
+            stroke-dasharray="94.25"
+            stroke-dashoffset="0"
+            transform="rotate(-90 18 18)"
+          ></circle>
+        </svg>
+        <button
+          id="toast-close-btn"
+          class="toast-close-btn"
+          type="button"
+          aria-label="Đóng thông báo"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
-    <p id="toast-message" class="toast-message"></p>
-    <div id="toast-meta" class="toast-meta">
-      <div id="toast-status-row" class="toast-meta-row">
-        <span class="toast-meta-label">Status</span>
-        <span id="toast-status-code" class="toast-meta-value"></span>
+    <div id="toast-details" class="toast-details is-hidden">
+      <div class="toast-detail-row">
+        <span class="toast-detail-label">Mã hỗ trợ</span>
+        <span
+          id="toast-request-code"
+          class="toast-detail-value toast-detail-code"
+        ></span>
       </div>
-      <div id="toast-request-row" class="toast-meta-row">
-        <span class="toast-meta-label">Request code</span>
-        <span id="toast-request-code" class="toast-meta-value"></span>
+      <div id="toast-link-row" class="toast-detail-row is-hidden">
+        <span class="toast-detail-label">Tra cứu</span>
+        <a
+          id="toast-link"
+          class="toast-detail-value toast-detail-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+        ></a>
       </div>
     </div>
-    <a
-      id="toast-link"
-      class="toast-link"
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Mở Support Center
-    </a>
   </div>
 </div>
