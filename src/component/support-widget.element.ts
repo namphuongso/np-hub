@@ -82,7 +82,6 @@ export class SupportWidgetElement extends HTMLElement {
   private prefilledAttachments: string[] = [];
   private previewUrls: string[] = [];
   private closeAfterSuccessTimer: number | null = null;
-  private toastAutoCloseTimer: number | null = null;
   private toastCountdownInterval: number | null = null;
   private toastSuccessDuration = 4000;
   private toastErrorDuration = 4000;
@@ -112,7 +111,6 @@ export class SupportWidgetElement extends HTMLElement {
   disconnectedCallback(): void {
     window.removeEventListener("resize", this.handleResize);
     this.clearCloseAfterSuccessTimer();
-    this.clearToastAutoCloseTimer();
     this.clearToastCountdown();
   }
 
@@ -128,6 +126,10 @@ export class SupportWidgetElement extends HTMLElement {
     this.prefillFromState();
   }
 
+  /**
+   * Updates the widget configuration.
+   * Supports custom toast auto-close durations via `toastDuration`.
+   */
   setConfig(config: Partial<SupportWidgetConfig>): void {
     this.config = {
       ...this.config,
@@ -192,6 +194,10 @@ export class SupportWidgetElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent(WIDGET_EVENTS.CLOSE, { bubbles: true }));
   }
 
+  /**
+   * Helper method to trigger a mock/demo toast popup for testing and development.
+   * @param type - Either "success" or "error"
+   */
   public showDemoToast(type: "success" | "error"): void {
     if (type === "success") {
       this.showToast({
@@ -832,7 +838,6 @@ export class SupportWidgetElement extends HTMLElement {
       return;
     }
 
-    this.clearToastAutoCloseTimer();
     this.clearToastCountdown();
 
     titleEl.textContent = payload.title;
@@ -916,7 +921,6 @@ export class SupportWidgetElement extends HTMLElement {
 
     const isSuccess = toastEl.classList.contains("success");
 
-    this.clearToastAutoCloseTimer();
     this.clearToastCountdown();
     this.toastRemainingMs = 0;
     this.toastTotalMs = 0;
@@ -998,12 +1002,6 @@ export class SupportWidgetElement extends HTMLElement {
     };
   }
 
-  private clearToastAutoCloseTimer(): void {
-    if (this.toastAutoCloseTimer !== null) {
-      window.clearTimeout(this.toastAutoCloseTimer);
-      this.toastAutoCloseTimer = null;
-    }
-  }
 
   private normalizeToastDuration(value: number): number {
     if (!Number.isFinite(value) || value <= 0) {

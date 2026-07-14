@@ -154,14 +154,15 @@ The launcher logo is embedded in the bundle (`src/component/assets/np-support-lo
 
 Implemented in `src/component/support-widget.element.ts` with markup in `support-widget.template.html` and styles in `support-widget.styles.css`.
 
-| Behavior     | Detail                                                           |
-| ------------ | ---------------------------------------------------------------- |
-| Trigger      | API submit success, or API / runtime error                       |
-| Not shown    | Client-side required-field validation (inline field errors only) |
-| Position     | Centered overlay toast                                           |
-| Auto-close   | `toastDuration` from `setConfig` (default `4000` ms)             |
-| Manual close | `toast-close-btn` dismisses immediately                          |
-| Success      | Toast shown, then modal auto-closes after ~1.2s                  |
+| Behavior     | Detail                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| Trigger      | API submit success, or API / runtime error                                                        |
+| Not shown    | Client-side required-field validation (inline field errors only)                                  |
+| Position     | Centered overlay toast                                                                            |
+| Auto-close   | `toastDuration` from `setConfig` (default `4000` ms). Pauses countdown when hovered.               |
+| Manual close | `toast-close-btn` dismisses immediately                                                           |
+| Copy Actions | Copy support request code and lookup URL directly from success toast                              |
+| Success      | Toast shown, then modal auto-closes after `toastSuccessDuration` (falls back to `toastDuration` value) |
 
 Invalid `toastDuration` values (`<= 0`, `NaN`, `Infinity`) fall back to `4000`.
 

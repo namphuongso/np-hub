@@ -94,12 +94,20 @@ Prefill does **not** skip validation. Name, email, phone, and content remain req
 
 On submit **success** or **API error**, a centered toast appears with the result message. It auto-closes after `toastDuration` milliseconds (default `4000`) or the user can dismiss it with `×`.
 
+Hovering the mouse cursor over the toast pauses the auto-close countdown. The success toast also contains quick-copy buttons for copying the support request code and lookup link.
+
 Validation errors (missing required fields) do **not** show a toast — only inline field highlighting.
+
+`toastDuration` can be a single number (for both success and error toasts) or an object specifying separate durations:
 
 ```js
 widget.setConfig({
   projectId: "NPP",
-  toastDuration: 6000,
+  // Single duration:
+  toastDuration: 6000, 
+  
+  // Or separate success/error durations:
+  // toastDuration: { success: 3000, error: 8000 }
 });
 ```
 
@@ -170,13 +178,16 @@ export default function App() {
 ```tsx
 <SupportWidget
   projectId="NPP"
+  // Single duration for both success/error toasts
   toastDuration={6000}
+  // Or configure separately:
+  // toastDuration={{ success: 3000, error: 8000 }}
   onSubmitSuccess={(detail) => console.log("Success:", detail)}
   onSubmitError={(error) => console.error("Error:", error)}
 />
 ```
 
-`toastDuration` controls how long the success/error toast stays visible before auto-closing. Users can also close it manually.
+`toastDuration` controls how long the success/error toast stays visible before auto-closing. The countdown pauses on mouse hover. Users can copy the request code or lookup link directly from the success toast.
 
 ---
 

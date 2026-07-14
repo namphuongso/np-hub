@@ -121,14 +121,14 @@ export default function App() {
 
 ### `setConfig` / React props
 
-| Name            | Required | Default | Description                                    |
-| --------------- | -------- | ------- | ---------------------------------------------- |
-| `projectId`     | No       | —       | Project code forwarded to the API              |
-| `isDev`         | No       | `false` | `true` → Development API; otherwise Production |
-| `priority`      | No       | `0`     | Request priority                               |
-| `coordinators`  | No       | `[]`    | Coordinator email list                         |
-| `emailContacts` | No       | `[]`    | Contact emails that receive the notification   |
-| `toastDuration` | No       | `4000`  | Toast auto-close delay in milliseconds         |
+| Name            | Required | Default | Description                                                                                                            |
+| --------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `projectId`     | No       | —       | Project code forwarded to the API                                                                                      |
+| `isDev`         | No       | `false` | `true` → Development API; otherwise Production                                                                         |
+| `priority`      | No       | `0`     | Request priority                                                                                                       |
+| `coordinators`  | No       | `[]`    | Coordinator email list                                                                                                 |
+| `emailContacts` | No       | `[]`    | Contact emails that receive the notification                                                                           |
+| `toastDuration` | No       | `4000`  | Toast auto-close delay in ms. Can be a number or an object: `{ success?: number, error?: number }`                     |
 
 ### Prefill (optional)
 
@@ -192,23 +192,32 @@ widget.setAttribute("bottom", "24");
 
 After a successful API submit or an API/exception failure, the widget shows a **centered toast** with the result message.
 
-| Behavior          | Detail                                                   |
-| ----------------- | -------------------------------------------------------- |
-| When shown        | Submit success, or API / runtime error                   |
-| When hidden       | Missing required fields (only inline field highlighting) |
-| Auto-close        | After `toastDuration` ms (default `4000`)                |
-| Manual close      | User can dismiss via the `×` button                      |
-| Success follow-up | Modal closes automatically ~1.2s after success           |
+| Behavior          | Detail                                                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| When shown        | Submit success, or API / runtime error                                                                                  |
+| When hidden       | Missing required fields (only inline field highlighting)                                                                |
+| Auto-close        | After `toastDuration` ms (default `4000`). Pauses countdown on cursor hover.                                            |
+| Copy Actions      | Provides quick-copy buttons for the support request code and lookup URL directly on the success toast                   |
+| Manual close      | User can dismiss via the `×` button                                                                                     |
+| Success follow-up | Modal closes automatically after success toast auto-closes (controlled by `toastSuccessDuration`)                       |
+
+`toastDuration` can be a single number (applies to both success/error) or structured with separate values:
 
 ```js
 widget.setConfig({
   projectId: "NPP",
-  toastDuration: 6000, // auto-close after 6 seconds
+  toastDuration: {
+    success: 3000, // closes success toast after 3s
+    error: 8000    // keeps error toast open for 8s
+  }
 });
 ```
 
 ```tsx
-<SupportWidget projectId="NPP" toastDuration={6000} />
+<SupportWidget 
+  projectId="NPP" 
+  toastDuration={{ success: 3000, error: 8000 }} 
+/>
 ```
 
 ---
@@ -228,12 +237,13 @@ React equivalent props: `onOpen`, `onClose`, `onSubmitSuccess`, `onSubmitError`.
 
 ### Methods (Web Component)
 
-| Method                 | Description                   |
-| ---------------------- | ----------------------------- |
-| `setConfig(config)`    | Apply project / API settings  |
-| `setUser(user)`        | Prefill requester fields      |
-| `setFormPrefill(data)` | Prefill content / attachments |
-| `open()` / `close()`   | Open or close the modal       |
+| Method                        | Description                                                         |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `setConfig(config)`           | Apply project / API settings                                        |
+| `setUser(user)`               | Prefill requester fields                                            |
+| `setFormPrefill(data)`        | Prefill content / attachments                                       |
+| `open()` / `close()`          | Open or close the modal                                             |
+| `showDemoToast(type)`         | Show a dummy toast for testing/dev (accepts `"success"` or `"error"`) |
 
 ---
 
