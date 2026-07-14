@@ -1,10 +1,4 @@
-import {
-  createElement,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createElement, useEffect, useState } from "react";
 import type { SupportWidgetElement } from "../component/support-widget.element";
 import { WIDGET_EVENTS } from "../component/events/widget-events";
 import { registerSupportWidget } from "../register";
@@ -57,20 +51,15 @@ export function SupportWidget({
   onClose,
 }: SupportWidgetProps) {
   const [mounted, setMounted] = useState(false);
-  const widgetRef = useRef<SupportWidgetElement | null>(null);
-
-  const setWidgetRef = useCallback((node: SupportWidgetElement | null) => {
-    widgetRef.current = node;
-  }, []);
+  const [widgetEl, setWidgetEl] = useState<SupportWidgetElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    const el = widgetRef.current;
-    if (!el) return;
-    el.setConfig({
+    if (!widgetEl) return;
+    widgetEl.setConfig({
       projectId,
       isDev,
       priority,
@@ -78,23 +67,28 @@ export function SupportWidget({
       emailContacts,
       toastDuration,
     });
-  }, [projectId, isDev, priority, coordinators, emailContacts, toastDuration]);
+  }, [
+    widgetEl,
+    projectId,
+    isDev,
+    priority,
+    coordinators,
+    emailContacts,
+    toastDuration,
+  ]);
 
   useEffect(() => {
-    const el = widgetRef.current;
-    if (!el || !user) return;
-    el.setUser(user);
-  }, [user]);
+    if (!widgetEl || !user) return;
+    widgetEl.setUser(user);
+  }, [widgetEl, user]);
 
   useEffect(() => {
-    const el = widgetRef.current;
-    if (!el || !formPrefill) return;
-    el.setFormPrefill(formPrefill);
-  }, [formPrefill]);
+    if (!widgetEl || !formPrefill) return;
+    widgetEl.setFormPrefill(formPrefill);
+  }, [widgetEl, formPrefill]);
 
   useEffect(() => {
-    const el = widgetRef.current;
-    if (!el) return;
+    if (!widgetEl) return;
 
     const handleSuccess = (event: Event) => {
       onSubmitSuccess?.((event as CustomEvent).detail);
@@ -104,40 +98,43 @@ export function SupportWidget({
     };
 
     if (onSubmitSuccess) {
-      el.addEventListener(WIDGET_EVENTS.SUBMIT_SUCCESS, handleSuccess);
+      widgetEl.addEventListener(WIDGET_EVENTS.SUBMIT_SUCCESS, handleSuccess);
     }
     if (onSubmitError) {
-      el.addEventListener(WIDGET_EVENTS.SUBMIT_ERROR, handleError);
+      widgetEl.addEventListener(WIDGET_EVENTS.SUBMIT_ERROR, handleError);
     }
     if (onOpen) {
-      el.addEventListener(WIDGET_EVENTS.OPEN, onOpen);
+      widgetEl.addEventListener(WIDGET_EVENTS.OPEN, onOpen);
     }
     if (onClose) {
-      el.addEventListener(WIDGET_EVENTS.CLOSE, onClose);
+      widgetEl.addEventListener(WIDGET_EVENTS.CLOSE, onClose);
     }
 
     return () => {
       if (onSubmitSuccess) {
-        el.removeEventListener(WIDGET_EVENTS.SUBMIT_SUCCESS, handleSuccess);
+        widgetEl.removeEventListener(
+          WIDGET_EVENTS.SUBMIT_SUCCESS,
+          handleSuccess,
+        );
       }
       if (onSubmitError) {
-        el.removeEventListener(WIDGET_EVENTS.SUBMIT_ERROR, handleError);
+        widgetEl.removeEventListener(WIDGET_EVENTS.SUBMIT_ERROR, handleError);
       }
       if (onOpen) {
-        el.removeEventListener(WIDGET_EVENTS.OPEN, onOpen);
+        widgetEl.removeEventListener(WIDGET_EVENTS.OPEN, onOpen);
       }
       if (onClose) {
-        el.removeEventListener(WIDGET_EVENTS.CLOSE, onClose);
+        widgetEl.removeEventListener(WIDGET_EVENTS.CLOSE, onClose);
       }
     };
-  }, [onSubmitSuccess, onSubmitError, onOpen, onClose]);
+  }, [widgetEl, onSubmitSuccess, onSubmitError, onOpen, onClose]);
 
   if (!mounted) {
     return null;
   }
 
   return createElement("np-hub", {
-    ref: setWidgetRef,
+    ref: setWidgetEl,
     "project-id": projectId,
     ...(isDev ? { "is-dev": true } : {}),
     ...(width !== undefined ? { width } : {}),
