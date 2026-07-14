@@ -13,7 +13,7 @@
     aria-label="Support request form"
   >
     <div class="header">
-      <h3 class="title">Tạo yêu cầu</h3>
+      <h3 class="title">Tạo yêu cầu hỗ trợ</h3>
       <button id="close-btn" class="close-btn" type="button" aria-label="Close">
         ×
       </button>
@@ -227,20 +227,92 @@
     <div id="toast-details" class="toast-details is-hidden">
       <div class="toast-detail-row">
         <span class="toast-detail-label">Mã hỗ trợ</span>
-        <span
-          id="toast-request-code"
-          class="toast-detail-value toast-detail-code"
-        ></span>
+        <div class="toast-detail-value-wrap">
+          <span
+            id="toast-request-code"
+            class="toast-detail-value toast-detail-code"
+          ></span>
+          <button
+            id="toast-copy-code-btn"
+            class="toast-copy-btn"
+            type="button"
+            title="Sao chép mã hỗ trợ"
+          >
+            <svg
+              class="icon-copy"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              ></path>
+            </svg>
+            <svg
+              class="icon-copied is-hidden"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
       <div id="toast-link-row" class="toast-detail-row is-hidden">
         <span class="toast-detail-label">Tra cứu</span>
-        <a
-          id="toast-link"
-          class="toast-detail-value toast-detail-link"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-        ></a>
+        <div class="toast-detail-value-wrap">
+          <a
+            id="toast-link"
+            class="toast-detail-value toast-detail-link"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          ></a>
+          <button
+            id="toast-copy-link-btn"
+            class="toast-copy-btn"
+            type="button"
+            title="Sao chép liên kết"
+          >
+            <svg
+              class="icon-copy"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              ></path>
+            </svg>
+            <svg
+              class="icon-copied is-hidden"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>

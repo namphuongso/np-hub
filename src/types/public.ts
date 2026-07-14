@@ -12,7 +12,7 @@ export interface SupportWidgetConfig {
   priority?: number;
   coordinators?: string[];
   emailContacts?: string[];
-  toastDuration?: number;
+  toastDuration?: number | { success?: number; error?: number };
 }
 
 export interface SupportSubmissionInput {

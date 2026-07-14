@@ -67,6 +67,7 @@ export class SupportWidgetElement extends HTMLElement {
     "bottom",
     "left",
     "top",
+    "toast-duration",
   ];
 
   private config: SupportWidgetConfig = {
@@ -83,7 +84,11 @@ export class SupportWidgetElement extends HTMLElement {
   private closeAfterSuccessTimer: number | null = null;
   private toastAutoCloseTimer: number | null = null;
   private toastCountdownInterval: number | null = null;
-  private toastDuration = 4000;
+  private toastSuccessDuration = 4000;
+  private toastErrorDuration = 4000;
+  private toastRemainingMs = 0;
+  private toastTotalMs = 0;
+  private isToastPaused = false;
   public priority: number | undefined;
   public coordinators: string[] = [];
   public emailContacts: string[] = [];
@@ -148,7 +153,23 @@ export class SupportWidgetElement extends HTMLElement {
       this.emailContacts = config.emailContacts;
     }
     if (config.toastDuration !== undefined) {
-      this.toastDuration = this.normalizeToastDuration(config.toastDuration);
+      const duration = config.toastDuration;
+      if (typeof duration === "number") {
+        const val = this.normalizeToastDuration(duration);
+        this.toastSuccessDuration = val;
+        this.toastErrorDuration = val;
+      } else if (duration && typeof duration === "object") {
+        if (duration.success !== undefined) {
+          this.toastSuccessDuration = this.normalizeToastDuration(duration.success);
+        } else {
+          this.toastSuccessDuration = 4000;
+        }
+        if (duration.error !== undefined) {
+          this.toastErrorDuration = this.normalizeToastDuration(duration.error);
+        } else {
+          this.toastErrorDuration = 4000;
+        }
+      }
     }
   }
 
@@ -166,8 +187,27 @@ export class SupportWidgetElement extends HTMLElement {
   close(): void {
     this.clearCloseAfterSuccessTimer();
     this.resetFormData();
+    this.hideToast(false);
     this.shadowRoot?.getElementById("modal")?.classList.remove("show");
     this.dispatchEvent(new CustomEvent(WIDGET_EVENTS.CLOSE, { bubbles: true }));
+  }
+
+  public showDemoToast(type: "success" | "error"): void {
+    if (type === "success") {
+      this.showToast({
+        type: "success",
+        title: "Gửi yêu cầu thành công",
+        message: "Successful.",
+        requestCode: "2607-230-1322",
+        url: "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322",
+      });
+    } else {
+      this.showToast({
+        type: "error",
+        title: "Gửi yêu cầu thất bại",
+        message: "Phone number is invalid",
+      });
+    }
   }
 
   private syncConfigFromAttributes(): void {
@@ -176,6 +216,33 @@ export class SupportWidgetElement extends HTMLElement {
       projectId: this.getAttribute("project-id") ?? "",
       isDev: this.hasAttribute("is-dev"),
     };
+
+    const toastDurationAttr = this.getAttribute("toast-duration");
+    if (toastDurationAttr !== null) {
+      const trimmed = toastDurationAttr.trim();
+      if (trimmed.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed && typeof parsed === "object") {
+            if (parsed.success !== undefined) {
+              this.toastSuccessDuration = this.normalizeToastDuration(Number(parsed.success));
+            }
+            if (parsed.error !== undefined) {
+              this.toastErrorDuration = this.normalizeToastDuration(Number(parsed.error));
+            }
+          }
+        } catch {
+          // ignore parsing error
+        }
+      } else {
+        const parsed = parseInt(trimmed, 10);
+        if (!isNaN(parsed)) {
+          const val = this.normalizeToastDuration(parsed);
+          this.toastSuccessDuration = val;
+          this.toastErrorDuration = val;
+        }
+      }
+    }
   }
 
   private bindActions(): void {
@@ -206,6 +273,16 @@ export class SupportWidgetElement extends HTMLElement {
     root.getElementById("toast-close-btn")?.addEventListener("click", () => {
       this.hideToast();
     });
+
+    const toastCardEl = root.querySelector(".toast-card");
+    if (toastCardEl) {
+      toastCardEl.addEventListener("mouseenter", () => {
+        this.isToastPaused = true;
+      });
+      toastCardEl.addEventListener("mouseleave", () => {
+        this.isToastPaused = false;
+      });
+    }
 
     this.setupClearableInputs();
 
@@ -256,6 +333,7 @@ export class SupportWidgetElement extends HTMLElement {
       });
     }
 
+    this.setupToastCopy();
     this.setupClipboardPaste();
     this.setupPreviewControls();
   }
@@ -275,6 +353,73 @@ export class SupportWidgetElement extends HTMLElement {
 
     root.addEventListener("keydown", (event) => {
       if ((event as KeyboardEvent).key === "Escape") this.closePreview();
+    });
+  }
+
+  private setupToastCopy(): void {
+    const root = this.shadowRoot;
+    if (!root) return;
+
+    const copyCodeBtn = root.getElementById("toast-copy-code-btn");
+    const copyLinkBtn = root.getElementById("toast-copy-link-btn");
+
+    const copyText = async (text: string, btn: HTMLElement | null) => {
+      if (!text || !btn) return;
+
+      const doSuccessFeedback = () => {
+        btn.classList.add("copied");
+        const copyIcon = btn.querySelector(".icon-copy");
+        const copiedIcon = btn.querySelector(".icon-copied");
+        if (copyIcon && copiedIcon) {
+          copyIcon.classList.add("is-hidden");
+          copiedIcon.classList.remove("is-hidden");
+        }
+
+        window.setTimeout(() => {
+          btn.classList.remove("copied");
+          if (copyIcon && copiedIcon) {
+            copyIcon.classList.remove("is-hidden");
+            copiedIcon.classList.add("is-hidden");
+          }
+        }, 1500);
+      };
+
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          doSuccessFeedback();
+          return;
+        } catch (err) {
+          console.warn("navigator.clipboard.writeText failed, trying fallback: ", err);
+        }
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        doSuccessFeedback();
+      } catch (err) {
+        console.error("Fallback copy failed: ", err);
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    };
+
+    copyCodeBtn?.addEventListener("click", () => {
+      const codeEl = root.getElementById("toast-request-code");
+      const text = codeEl?.textContent || "";
+      void copyText(text, copyCodeBtn);
+    });
+
+    copyLinkBtn?.addEventListener("click", () => {
+      const linkEl = root.getElementById("toast-link") as HTMLAnchorElement | null;
+      const text = linkEl?.href || "";
+      void copyText(text, copyLinkBtn);
     });
   }
 
@@ -656,7 +801,7 @@ export class SupportWidgetElement extends HTMLElement {
 
   private showToast(
     payload: ToastPayload,
-    autoCloseMs = this.toastDuration,
+    autoCloseMs?: number,
   ): void {
     const toastEl = this.shadowRoot?.getElementById("toast");
     const titleEl = this.shadowRoot?.getElementById("toast-title");
@@ -721,25 +866,25 @@ export class SupportWidgetElement extends HTMLElement {
       detailsEl.classList.add("is-hidden");
     }
 
-    const closeMs =
-      payload.type === "success" && hasRequestCode
-        ? Math.max(autoCloseMs, 8000)
-        : autoCloseMs;
+    const duration = autoCloseMs !== undefined
+      ? autoCloseMs
+      : (payload.type === "success" ? this.toastSuccessDuration : this.toastErrorDuration);
+
+    this.toastRemainingMs = duration;
+    this.toastTotalMs = duration;
+    const toastCardEl = this.shadowRoot?.querySelector(".toast-card");
+    this.isToastPaused = Boolean(toastCardEl?.matches(":hover"));
 
     toastEl.classList.remove("success", "error");
     toastEl.classList.add(payload.type, "show");
     this.startToastCountdown(
-      closeMs,
       countdownEl ?? null,
       countdownSecondsEl ?? null,
       countdownBarEl,
     );
-    this.toastAutoCloseTimer = window.setTimeout(() => {
-      this.hideToast();
-    }, closeMs);
   }
 
-  private hideToast(): void {
+  private hideToast(shouldCloseModal = true): void {
     const toastEl = this.shadowRoot?.getElementById("toast");
     const titleEl = this.shadowRoot?.getElementById("toast-title");
     const messageEl = this.shadowRoot?.getElementById("toast-message");
@@ -769,8 +914,13 @@ export class SupportWidgetElement extends HTMLElement {
       return;
     }
 
+    const isSuccess = toastEl.classList.contains("success");
+
     this.clearToastAutoCloseTimer();
     this.clearToastCountdown();
+    this.toastRemainingMs = 0;
+    this.toastTotalMs = 0;
+    this.isToastPaused = false;
     titleEl.textContent = "";
     messageEl.textContent = "";
     requestCodeEl.textContent = "";
@@ -787,23 +937,24 @@ export class SupportWidgetElement extends HTMLElement {
       countdownEl.classList.add("is-hidden");
     }
     toastEl.classList.remove("success", "error", "show");
+
+    if (isSuccess && shouldCloseModal) {
+      this.close();
+    }
   }
 
   private startToastCountdown(
-    totalMs: number,
     countdownEl: HTMLElement | null,
     secondsEl: HTMLElement | null,
     barEl: HTMLElement,
   ): void {
-    let remainingMs = totalMs;
-
     const updateCountdown = (): void => {
-      const seconds = Math.max(1, Math.ceil(remainingMs / 1000));
+      const seconds = Math.max(1, Math.ceil(this.toastRemainingMs / 1000));
       if (secondsEl) {
         secondsEl.textContent = `${seconds}s`;
       }
       
-      const percent = Math.max(0, Math.min(1, remainingMs / totalMs));
+      const percent = Math.max(0, Math.min(1, this.toastRemainingMs / this.toastTotalMs));
       const offset = 94.25 * (1 - percent);
       barEl.style.strokeDashoffset = `${offset}`;
     };
@@ -814,14 +965,16 @@ export class SupportWidgetElement extends HTMLElement {
     }
 
     this.toastCountdownInterval = window.setInterval(() => {
-      remainingMs -= 100;
-      if (remainingMs <= 0) {
-        remainingMs = 0;
+      if (this.isToastPaused) return;
+
+      this.toastRemainingMs -= 100;
+      if (this.toastRemainingMs <= 0) {
+        this.toastRemainingMs = 0;
         barEl.style.strokeDashoffset = "94.25";
         if (secondsEl) {
           secondsEl.textContent = "0s";
         }
-        this.clearToastCountdown();
+        this.hideToast();
         return;
       }
       updateCountdown();
@@ -914,7 +1067,7 @@ export class SupportWidgetElement extends HTMLElement {
 
   private async submit(): Promise<void> {
     this.clearCloseAfterSuccessTimer();
-    this.hideToast();
+    this.hideToast(false);
 
     if (!this.validateRequiredFields()) {
       this.dispatchEvent(
@@ -1020,8 +1173,8 @@ export class SupportWidgetElement extends HTMLElement {
         }),
       );
       this.closeAfterSuccessTimer = window.setTimeout(() => {
-        this.close();
-      }, 1200);
+        this.hideToast();
+      }, this.toastSuccessDuration);
     } catch (error) {
       const errorContent = mapHttpClientError(error);
       this.showToast(this.toToastPayload(errorContent));

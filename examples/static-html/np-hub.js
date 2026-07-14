@@ -14,43 +14,9 @@ function bindDemoActions(widget) {
   var successBtn = document.getElementById("btn-test-success");
   if (successBtn) {
     successBtn.addEventListener("click", function () {
-      // Ensure widget is loaded
       var hub = document.querySelector("np-hub");
-      if (hub && hub.shadowRoot) {
-        var toast = hub.shadowRoot.getElementById("toast");
-        var title = hub.shadowRoot.getElementById("toast-title");
-        var msg = hub.shadowRoot.getElementById("toast-message");
-        var details = hub.shadowRoot.getElementById("toast-details");
-        var reqVal = hub.shadowRoot.getElementById("toast-request-code");
-        var linkRow = hub.shadowRoot.getElementById("toast-link-row");
-        var link = hub.shadowRoot.getElementById("toast-link");
-        var countdown = hub.shadowRoot.getElementById("toast-countdown");
-        var countdownSeconds = hub.shadowRoot.getElementById("toast-countdown-seconds");
-        var countdownBar = hub.shadowRoot.getElementById("toast-countdown-bar");
-        var closeBtn = hub.shadowRoot.getElementById("toast-close-btn");
-
-        title.textContent = "Gửi yêu cầu thành công";
-        msg.textContent = "Successful.";
-        reqVal.textContent = "2607-230-1322";
-        details.classList.remove("is-hidden");
-        link.href =
-          "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322";
-        link.textContent =
-          "https://hotro.azurewebsites.net/yeu-cau/2607-230-1322";
-        linkRow.classList.remove("is-hidden");
-        if (countdown) countdown.classList.remove("is-hidden");
-        if (countdownSeconds) countdownSeconds.textContent = "8s";
-        countdownBar.style.strokeDashoffset = "0";
-
-        toast.classList.remove("error");
-        toast.classList.add("success", "show");
-
-        // Simple close logic for demo
-        var closeHandler = function () {
-          toast.classList.remove("show");
-          closeBtn.removeEventListener("click", closeHandler);
-        };
-        closeBtn.addEventListener("click", closeHandler);
+      if (hub) {
+        hub.showDemoToast("success");
       }
     });
   }
@@ -59,32 +25,8 @@ function bindDemoActions(widget) {
   if (errorBtn) {
     errorBtn.addEventListener("click", function () {
       var hub = document.querySelector("np-hub");
-      if (hub && hub.shadowRoot) {
-        var toast = hub.shadowRoot.getElementById("toast");
-        var title = hub.shadowRoot.getElementById("toast-title");
-        var msg = hub.shadowRoot.getElementById("toast-message");
-        var details = hub.shadowRoot.getElementById("toast-details");
-        var countdown = hub.shadowRoot.getElementById("toast-countdown");
-        var countdownSeconds = hub.shadowRoot.getElementById("toast-countdown-seconds");
-        var countdownBar = hub.shadowRoot.getElementById("toast-countdown-bar");
-        var closeBtn = hub.shadowRoot.getElementById("toast-close-btn");
-
-        title.textContent = "Gửi yêu cầu thất bại";
-        msg.textContent = "Phone number is invalid";
-        details.classList.add("is-hidden");
-        if (countdown) countdown.classList.remove("is-hidden");
-        if (countdownSeconds) countdownSeconds.textContent = "6s";
-        countdownBar.style.strokeDashoffset = "0";
-
-        toast.classList.remove("success");
-        toast.classList.add("error", "show");
-
-        // Simple close logic for demo
-        var closeHandler = function () {
-          toast.classList.remove("show");
-          closeBtn.removeEventListener("click", closeHandler);
-        };
-        closeBtn.addEventListener("click", closeHandler);
+      if (hub) {
+        hub.showDemoToast("error");
       }
     });
   }

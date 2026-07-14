@@ -14,30 +14,30 @@ Guide for contributors working on `@namphuongtechnologi/np-hub`.
 
 ## Stack
 
-| Concern        | Choice                                      |
-| -------------- | ------------------------------------------- |
-| Language       | TypeScript                                  |
-| UI runtime     | Native Web Component (`customElements`)     |
-| Bundler        | `tsup` (ESM, CJS, IIFE)                     |
-| Tests          | `vitest`                                    |
-| Lint           | `eslint`                                    |
-| Node           | `>= 18`                                     |
+| Concern    | Choice                                  |
+| ---------- | --------------------------------------- |
+| Language   | TypeScript                              |
+| UI runtime | Native Web Component (`customElements`) |
+| Bundler    | `tsup` (ESM, CJS, IIFE)                 |
+| Tests      | `vitest`                                |
+| Lint       | `eslint`                                |
+| Node       | `>= 18`                                 |
 
 ---
 
 ## Repository layout
 
-| Path | Responsibility |
-| ---- | -------------- |
-| `src/core` | Config resolution & validation |
-| `src/services` | HTTP / API side effects |
-| `src/component` | Widget UI, template, styles, lifecycle |
-| `src/react` | React wrapper (`SupportWidget`) |
-| `src/types` | Public TypeScript types |
-| `src/register.ts` | Custom element registration |
-| `src/index.ts` | Library public exports |
-| `tests/unit` | Unit tests |
-| `examples/static-html` | Local static integration sample |
+| Path                   | Responsibility                         |
+| ---------------------- | -------------------------------------- |
+| `src/core`             | Config resolution & validation         |
+| `src/services`         | HTTP / API side effects                |
+| `src/component`        | Widget UI, template, styles, lifecycle |
+| `src/react`            | React wrapper (`SupportWidget`)        |
+| `src/types`            | Public TypeScript types                |
+| `src/register.ts`      | Custom element registration            |
+| `src/index.ts`         | Library public exports                 |
+| `tests/unit`           | Unit tests                             |
+| `examples/static-html` | Local static integration sample        |
 
 ---
 
@@ -122,28 +122,28 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 ### Events
 
-| Event | Fired when |
-| ----- | ---------- |
-| `np-hub-open` | Modal opens |
-| `np-hub-close` | Modal closes |
-| `np-hub-submit-success` | API accepts the request |
-| `np-hub-submit-error` | Validation or API failure |
+| Event                   | Fired when                |
+| ----------------------- | ------------------------- |
+| `np-hub-open`           | Modal opens               |
+| `np-hub-close`          | Modal closes              |
+| `np-hub-submit-success` | API accepts the request   |
+| `np-hub-submit-error`   | Validation or API failure |
 
 ### Methods
 
-| Method | Purpose |
-| ------ | ------- |
-| `setConfig(config)` | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`, `toastDuration`) |
-| `setUser(user)` | Prefill requester fields (still required on submit) |
-| `setFormPrefill(data)` | Prefill `content` / `attachments` |
-| `open()` / `close()` | Control modal visibility |
+| Method                 | Purpose                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `setConfig(config)`    | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`, `toastDuration`) |
+| `setUser(user)`        | Prefill requester fields (still required on submit)                                                         |
+| `setFormPrefill(data)` | Prefill `content` / `attachments`                                                                           |
+| `open()` / `close()`   | Control modal visibility                                                                                    |
 
 ### Attributes
 
-| Attribute | Purpose |
-| --------- | ------- |
-| `project-id`, `is-dev` | Project & environment |
-| `width`, `height` | Launcher size (default `65px`) |
+| Attribute                        | Purpose                                             |
+| -------------------------------- | --------------------------------------------------- |
+| `project-id`, `is-dev`           | Project & environment                               |
+| `width`, `height`                | Launcher size (default `65px`)                      |
 | `right`, `bottom`, `left`, `top` | Launcher insets (default `right`/`bottom` = `20px`) |
 
 If the user has dragged the launcher, the `localStorage` position overrides attributes until cleared.
@@ -154,14 +154,14 @@ The launcher logo is embedded in the bundle (`src/component/assets/np-support-lo
 
 Implemented in `src/component/support-widget.element.ts` with markup in `support-widget.template.html` and styles in `support-widget.styles.css`.
 
-| Behavior | Detail |
-| -------- | ------ |
-| Trigger | API submit success, or API / runtime error |
-| Not shown | Client-side required-field validation (inline field errors only) |
-| Position | Centered overlay toast |
-| Auto-close | `toastDuration` from `setConfig` (default `4000` ms) |
-| Manual close | `toast-close-btn` dismisses immediately |
-| Success | Toast shown, then modal auto-closes after ~1.2s |
+| Behavior     | Detail                                                           |
+| ------------ | ---------------------------------------------------------------- |
+| Trigger      | API submit success, or API / runtime error                       |
+| Not shown    | Client-side required-field validation (inline field errors only) |
+| Position     | Centered overlay toast                                           |
+| Auto-close   | `toastDuration` from `setConfig` (default `4000` ms)             |
+| Manual close | `toast-close-btn` dismisses immediately                          |
+| Success      | Toast shown, then modal auto-closes after ~1.2s                  |
 
 Invalid `toastDuration` values (`<= 0`, `NaN`, `Infinity`) fall back to `4000`.
 
@@ -171,10 +171,10 @@ Invalid `toastDuration` values (`<= 0`, `NaN`, `Infinity`) fall back to `4000`.
 
 Resolved in `src/core/config/endpoints.ts`:
 
-| Condition | Environment |
-| --------- | ----------- |
-| `is-dev` / `isDev` unset or false | Production |
-| `is-dev` / `isDev` true | Development |
+| Condition                         | Environment |
+| --------------------------------- | ----------- |
+| `is-dev` / `isDev` unset or false | Production  |
+| `is-dev` / `isDev` true           | Development |
 
 ---
 

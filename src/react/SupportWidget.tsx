@@ -21,7 +21,7 @@ export interface SupportWidgetProps {
   priority?: number;
   coordinators?: string[];
   emailContacts?: string[];
-  toastDuration?: number;
+  toastDuration?: number | { success?: number; error?: number };
   width?: string | number;
   height?: string | number;
   right?: string | number;
