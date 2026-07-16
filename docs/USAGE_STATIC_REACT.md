@@ -22,7 +22,7 @@ Load the CDN bundle via a small config script, then include that script on every
 
 ```js
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.9/dist/np-hub.min.global.js";
+  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.3/dist/np-hub.min.global.js";
 
 function initNpHub() {
   var widget = document.createElement("np-hub");
@@ -52,13 +52,24 @@ script.onload = initNpHub;
 document.head.appendChild(script);
 ```
 
+Pin the CDN version to the npm package version you intend to use.
+
 ### 2. Include in `index.html`
 
 ```html
 <script src="./np-hub.js"></script>
 ```
 
-Reference implementation: [`examples/static-html/`](../examples/static-html/).
+### Bundler (no CDN)
+
+```js
+import "@namphuongtechnologi/np-hub/widget";
+
+const widget = document.createElement("np-hub");
+widget.setConfig({ projectId: "NPP" });
+document.body.appendChild(widget);
+```
+
 
 ### Position the launcher
 
@@ -71,6 +82,20 @@ widget.setAttribute("bottom", "40");
 // Alternate corner:
 // widget.setAttribute("left", "20");
 // widget.setAttribute("bottom", "20");
+```
+
+### Stacking order (`zIndex`)
+
+Default: `10000`. Override when the host page has overlapping layers (modals, sticky headers, etc.).
+
+```js
+widget.setConfig({
+  projectId: "NPP",
+  zIndex: 20000,
+});
+
+// Or via attribute:
+// widget.setAttribute("z-index", "20000");
 ```
 
 ### Optional prefill
@@ -123,6 +148,8 @@ npm install @namphuongtechnologi/np-hub
 
 ### Mount once at the root
 
+Requires React `>= 18`.
+
 ```tsx
 import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
 
@@ -143,6 +170,8 @@ export default function App() {
   );
 }
 ```
+
+`projectId` is required on the React component. Optional extras: `toastDuration`, `zIndex`, `width` / `height`, `right` / `bottom` / `left` / `top`, `user`, `formPrefill`.
 
 ### Position & size
 
@@ -182,6 +211,8 @@ export default function App() {
   toastDuration={6000}
   // Or configure separately:
   // toastDuration={{ success: 3000, error: 8000 }}
+  // Raise above other overlays when needed (default 10000):
+  // zIndex={20000}
   onSubmitSuccess={(detail) => console.log("Success:", detail)}
   onSubmitError={(error) => console.error("Error:", error)}
 />

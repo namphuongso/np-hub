@@ -16,6 +16,8 @@ export interface SupportWidgetProps {
   coordinators?: string[];
   emailContacts?: string[];
   toastDuration?: number | { success?: number; error?: number };
+  /** Stacking order of the widget. Defaults to `10000` when omitted. */
+  zIndex?: number;
   width?: string | number;
   height?: string | number;
   right?: string | number;
@@ -37,6 +39,7 @@ export function SupportWidget({
   coordinators,
   emailContacts,
   toastDuration,
+  zIndex,
   width,
   height,
   right,
@@ -66,6 +69,7 @@ export function SupportWidget({
       coordinators,
       emailContacts,
       toastDuration,
+      zIndex,
     });
   }, [
     widgetEl,
@@ -75,6 +79,7 @@ export function SupportWidget({
     coordinators,
     emailContacts,
     toastDuration,
+    zIndex,
   ]);
 
   useEffect(() => {

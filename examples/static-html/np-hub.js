@@ -1,6 +1,6 @@
 var NP_HUB_LOCAL = "/dist/np-hub.min.global.js";
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.1.9/dist/np-hub.min.global.js";
+  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.3/dist/np-hub.min.global.js";
 var USE_CDN_FALLBACK = false;
 
 function bindDemoActions(widget) {

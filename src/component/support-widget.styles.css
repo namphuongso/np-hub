@@ -14,7 +14,7 @@
   bottom: var(--np-hub-bottom, 20px);
   left: var(--np-hub-left, auto);
   top: var(--np-hub-top, auto);
-  z-index: 10000;
+  z-index: var(--np-hub-z-index, 10000);
 }
 
 .launcher {

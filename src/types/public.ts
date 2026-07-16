@@ -13,6 +13,8 @@ export interface SupportWidgetConfig {
   coordinators?: string[];
   emailContacts?: string[];
   toastDuration?: number | { success?: number; error?: number };
+  /** Stacking order of the widget. Defaults to `10000` when omitted. */
+  zIndex?: number;
 }
 
 export interface SupportSubmissionInput {

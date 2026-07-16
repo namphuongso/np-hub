@@ -68,6 +68,7 @@ export class SupportWidgetElement extends HTMLElement {
     "left",
     "top",
     "toast-duration",
+    "z-index",
   ];
 
   private config: SupportWidgetConfig = {
@@ -104,6 +105,7 @@ export class SupportWidgetElement extends HTMLElement {
     this.prefillFromState();
     this.applyLauncherStyle();
     this.applyPositionStyle();
+    this.applyZIndexStyle();
     this.restorePosition();
     window.addEventListener("resize", this.handleResize);
   }
@@ -119,6 +121,7 @@ export class SupportWidgetElement extends HTMLElement {
     this.prefillFromState();
     this.applyLauncherStyle();
     this.applyPositionStyle();
+    this.applyZIndexStyle();
   }
 
   setUser(user: SupportUserPrefill): void {
@@ -173,6 +176,16 @@ export class SupportWidgetElement extends HTMLElement {
         }
       }
     }
+    if (config.zIndex !== undefined) {
+      if (Number.isFinite(config.zIndex)) {
+        this.config.zIndex = Math.round(config.zIndex);
+        this.setAttribute("z-index", String(this.config.zIndex));
+      } else {
+        delete this.config.zIndex;
+        this.removeAttribute("z-index");
+      }
+      this.applyZIndexStyle();
+    }
   }
 
   setFormPrefill(data: FormPrefillInput): void {
@@ -222,6 +235,16 @@ export class SupportWidgetElement extends HTMLElement {
       projectId: this.getAttribute("project-id") ?? "",
       isDev: this.hasAttribute("is-dev"),
     };
+
+    const zIndexAttr = this.getAttribute("z-index");
+    if (zIndexAttr !== null) {
+      const parsed = Number(zIndexAttr.trim());
+      if (Number.isFinite(parsed)) {
+        this.config.zIndex = Math.round(parsed);
+      } else {
+        delete this.config.zIndex;
+      }
+    }
 
     const toastDurationAttr = this.getAttribute("toast-duration");
     if (toastDurationAttr !== null) {
@@ -694,6 +717,25 @@ export class SupportWidgetElement extends HTMLElement {
     if (right && !left) this.style.setProperty("--np-hub-left", "auto");
     if (top && !bottom) this.style.setProperty("--np-hub-bottom", "auto");
     if (bottom && !top) this.style.setProperty("--np-hub-top", "auto");
+  }
+
+  private applyZIndexStyle(): void {
+    const fromConfig = this.config.zIndex;
+    if (typeof fromConfig === "number" && Number.isFinite(fromConfig)) {
+      this.style.setProperty("--np-hub-z-index", String(Math.round(fromConfig)));
+      return;
+    }
+
+    const fromAttr = this.getAttribute("z-index");
+    if (fromAttr !== null && fromAttr.trim() !== "") {
+      const parsed = Number(fromAttr.trim());
+      if (Number.isFinite(parsed)) {
+        this.style.setProperty("--np-hub-z-index", String(Math.round(parsed)));
+        return;
+      }
+    }
+
+    this.style.removeProperty("--np-hub-z-index");
   }
 
   private setPositionVar(name: string, value: string | null): void {

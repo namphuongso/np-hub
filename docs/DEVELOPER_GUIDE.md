@@ -133,7 +133,7 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 | Method                 | Purpose                                                                                                     |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `setConfig(config)`    | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`, `toastDuration`) |
+| `setConfig(config)`    | Project / API settings (`projectId`, `isDev`, `priority`, `coordinators`, `emailContacts`, `toastDuration`, `zIndex`) |
 | `setUser(user)`        | Prefill requester fields (still required on submit)                                                         |
 | `setFormPrefill(data)` | Prefill `content` / `attachments`                                                                           |
 | `open()` / `close()`   | Control modal visibility                                                                                    |
@@ -145,6 +145,7 @@ npm run lint && npm run typecheck && npm run test && npm run build
 | `project-id`, `is-dev`           | Project & environment                               |
 | `width`, `height`                | Launcher size (default `65px`)                      |
 | `right`, `bottom`, `left`, `top` | Launcher insets (default `right`/`bottom` = `20px`) |
+| `z-index`                        | Stacking order (default `10000`)                    |
 
 If the user has dragged the launcher, the `localStorage` position overrides attributes until cleared.
 
