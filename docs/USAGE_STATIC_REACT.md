@@ -22,31 +22,31 @@ Load the CDN bundle via a small config script, then include that script on every
 
 ```js
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.3/dist/np-hub.min.global.js";
+    'https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.5/dist/np-hub.min.global.js';
 
 function initNpHub() {
-  var widget = document.createElement("np-hub");
+    var widget = document.createElement('np-hub');
 
-  widget.setConfig({
-    projectId: "NPP",
-    isDev: false,
-    priority: 0,
-    coordinators: [],
-    emailContacts: [],
-  });
+    widget.setConfig({
+        projectId: 'NPP',
+        isDev: false,
+        priority: 0,
+        coordinators: [],
+        emailContacts: [],
+    });
 
-  document.body.appendChild(widget);
+    document.body.appendChild(widget);
 
-  widget.addEventListener("np-hub-submit-success", function (event) {
-    console.log("Support request created:", event.detail);
-  });
+    widget.addEventListener('np-hub-submit-success', function (event) {
+        console.log('Support request created:', event.detail);
+    });
 
-  widget.addEventListener("np-hub-submit-error", function (event) {
-    console.error("Support request failed:", event.detail);
-  });
+    widget.addEventListener('np-hub-submit-error', function (event) {
+        console.error('Support request failed:', event.detail);
+    });
 }
 
-var script = document.createElement("script");
+var script = document.createElement('script');
 script.src = NP_HUB_CDN;
 script.onload = initNpHub;
 document.head.appendChild(script);
@@ -63,21 +63,20 @@ Pin the CDN version to the npm package version you intend to use.
 ### Bundler (no CDN)
 
 ```js
-import "@namphuongtechnologi/np-hub/widget";
+import '@namphuongtechnologi/np-hub/widget';
 
-const widget = document.createElement("np-hub");
-widget.setConfig({ projectId: "NPP" });
+const widget = document.createElement('np-hub');
+widget.setConfig({ projectId: 'NPP' });
 document.body.appendChild(widget);
 ```
-
 
 ### Position the launcher
 
 Default: bottom-right, `20px` inset.
 
 ```js
-widget.setAttribute("right", "24");
-widget.setAttribute("bottom", "40");
+widget.setAttribute('right', '24');
+widget.setAttribute('bottom', '40');
 
 // Alternate corner:
 // widget.setAttribute("left", "20");
@@ -90,8 +89,8 @@ Default: `10000`. Override when the host page has overlapping layers (modals, st
 
 ```js
 widget.setConfig({
-  projectId: "NPP",
-  zIndex: 20000,
+    projectId: 'NPP',
+    zIndex: 20000,
 });
 
 // Or via attribute:
@@ -102,14 +101,14 @@ widget.setConfig({
 
 ```js
 widget.setUser({
-  name: "Nguyen Van A",
-  email: "a@example.com",
-  phoneNumber: "0912345678",
+    name: 'Nguyen Van A',
+    email: 'a@example.com',
+    phoneNumber: '0912345678',
 });
 
 widget.setFormPrefill({
-  content: "Describe the issue...",
-  attachments: [],
+    content: 'Describe the issue...',
+    attachments: [],
 });
 ```
 
@@ -127,12 +126,12 @@ Validation errors (missing required fields) do **not** show a toast — only inl
 
 ```js
 widget.setConfig({
-  projectId: "NPP",
-  // Single duration:
-  toastDuration: 6000, 
-  
-  // Or separate success/error durations:
-  // toastDuration: { success: 3000, error: 8000 }
+    projectId: 'NPP',
+    // Single duration:
+    toastDuration: 6000,
+
+    // Or separate success/error durations:
+    // toastDuration: { success: 3000, error: 8000 }
 });
 ```
 
@@ -151,23 +150,23 @@ npm install @namphuongtechnologi/np-hub
 Requires React `>= 18`.
 
 ```tsx
-import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
+import { SupportWidget } from '@namphuongtechnologi/np-hub/react';
 
 export default function App() {
-  return (
-    <>
-      {/* application tree */}
-      <SupportWidget
-        projectId="NPP"
-        isDev={false}
-        priority={0}
-        coordinators={[]}
-        emailContacts={[]}
-        onSubmitSuccess={(detail) => console.log("Success:", detail)}
-        onSubmitError={(error) => console.error("Error:", error)}
-      />
-    </>
-  );
+    return (
+        <>
+            {/* application tree */}
+            <SupportWidget
+                projectId='NPP'
+                isDev={false}
+                priority={0}
+                coordinators={[]}
+                emailContacts={[]}
+                onSubmitSuccess={(detail) => console.log('Success:', detail)}
+                onSubmitError={(error) => console.error('Error:', error)}
+            />
+        </>
+    );
 }
 ```
 
@@ -176,29 +175,23 @@ export default function App() {
 ### Position & size
 
 ```tsx
-<SupportWidget
-  projectId="NPP"
-  width={65}
-  height={65}
-  right={24}
-  bottom={40}
-/>
+<SupportWidget projectId='NPP' width={65} height={65} right={24} bottom={40} />
 ```
 
 ### Optional prefill
 
 ```tsx
 <SupportWidget
-  projectId="NPP"
-  user={{
-    name: "Nguyen Van A",
-    email: "a@example.com",
-    phoneNumber: "0912345678",
-  }}
-  formPrefill={{
-    content: "Describe the issue...",
-    attachments: [],
-  }}
+    projectId='NPP'
+    user={{
+        name: 'Nguyen Van A',
+        email: 'a@example.com',
+        phoneNumber: '0912345678',
+    }}
+    formPrefill={{
+        content: 'Describe the issue...',
+        attachments: [],
+    }}
 />
 ```
 
@@ -206,15 +199,15 @@ export default function App() {
 
 ```tsx
 <SupportWidget
-  projectId="NPP"
-  // Single duration for both success/error toasts
-  toastDuration={6000}
-  // Or configure separately:
-  // toastDuration={{ success: 3000, error: 8000 }}
-  // Raise above other overlays when needed (default 10000):
-  // zIndex={20000}
-  onSubmitSuccess={(detail) => console.log("Success:", detail)}
-  onSubmitError={(error) => console.error("Error:", error)}
+    projectId='NPP'
+    // Single duration for both success/error toasts
+    toastDuration={6000}
+    // Or configure separately:
+    // toastDuration={{ success: 3000, error: 8000 }}
+    // Raise above other overlays when needed (default 10000):
+    // zIndex={20000}
+    onSubmitSuccess={(detail) => console.log('Success:', detail)}
+    onSubmitError={(error) => console.error('Error:', error)}
 />
 ```
 
@@ -224,10 +217,10 @@ export default function App() {
 
 ## Environments
 
-| Flag                         | API base                                          |
-| ---------------------------- | ------------------------------------------------- |
-| Default (`isDev` omitted / `false`) | `https://namphuong-api.azurewebsites.net`  |
-| `isDev={true}` / `is-dev`    | `https://namphuong-api-dev.azurewebsites.net`     |
+| Flag                                | API base                                      |
+| ----------------------------------- | --------------------------------------------- |
+| Default (`isDev` omitted / `false`) | `https://namphuong-api.azurewebsites.net`     |
+| `isDev={true}` / `is-dev`           | `https://namphuong-api-dev.azurewebsites.net` |
 
 Use Production credentials and endpoints for live sites. Reserve Development for local and staging only.
 

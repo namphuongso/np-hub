@@ -27,10 +27,10 @@ npm install @namphuongtechnologi/np-hub
 
 **Peer dependency (React wrapper only):** `react` `>= 18`
 
-**CDN (static HTML, no bundler):** pin the version to match the package you want (current: `0.2.3`):
+**CDN (static HTML, no bundler):** pin the version to match the package you want (current: `0.2.5`):
 
 ```
-https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.3/dist/np-hub.min.global.js
+https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.5/dist/np-hub.min.global.js
 ```
 
 ---
@@ -45,31 +45,31 @@ Create a config script, then include it once in your page.
 
 ```js
 var NP_HUB_CDN =
-  "https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.3/dist/np-hub.min.global.js";
+    'https://cdn.jsdelivr.net/npm/@namphuongtechnologi/np-hub@0.2.5/dist/np-hub.min.global.js';
 
 function initNpHub() {
-  var widget = document.createElement("np-hub");
+    var widget = document.createElement('np-hub');
 
-  widget.setConfig({
-    projectId: "NPP",
-    isDev: false,
-    priority: 0,
-    coordinators: [],
-    emailContacts: [],
-  });
+    widget.setConfig({
+        projectId: 'NPP',
+        isDev: false,
+        priority: 0,
+        coordinators: [],
+        emailContacts: [],
+    });
 
-  document.body.appendChild(widget);
+    document.body.appendChild(widget);
 
-  widget.addEventListener("np-hub-submit-success", function (event) {
-    console.log("Support request created:", event.detail);
-  });
+    widget.addEventListener('np-hub-submit-success', function (event) {
+        console.log('Support request created:', event.detail);
+    });
 
-  widget.addEventListener("np-hub-submit-error", function (event) {
-    console.error("Support request failed:", event.detail);
-  });
+    widget.addEventListener('np-hub-submit-error', function (event) {
+        console.error('Support request failed:', event.detail);
+    });
 }
 
-var script = document.createElement("script");
+var script = document.createElement('script');
 script.src = NP_HUB_CDN;
 script.onload = initNpHub;
 document.head.appendChild(script);
@@ -80,26 +80,26 @@ document.head.appendChild(script);
 ```html
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Site</title>
-  </head>
-  <body>
-    <script src="./np-hub.js"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>My Site</title>
+    </head>
+    <body>
+        <script src="./np-hub.js"></script>
+    </body>
 </html>
 ```
 
 ### Web Component via npm (bundler)
 
 ```js
-import "@namphuongtechnologi/np-hub/widget";
+import '@namphuongtechnologi/np-hub/widget';
 
-const widget = document.createElement("np-hub");
+const widget = document.createElement('np-hub');
 widget.setConfig({
-  projectId: "NPP",
-  isDev: false,
+    projectId: 'NPP',
+    isDev: false,
 });
 document.body.appendChild(widget);
 ```
@@ -109,23 +109,23 @@ document.body.appendChild(widget);
 Requires React `>= 18`. Mount **once** at the application root (`App.tsx`, `main.tsx`, or root layout).
 
 ```tsx
-import { SupportWidget } from "@namphuongtechnologi/np-hub/react";
+import { SupportWidget } from '@namphuongtechnologi/np-hub/react';
 
 export default function App() {
-  return (
-    <>
-      {/* app content */}
-      <SupportWidget
-        projectId="NPP"
-        isDev={false}
-        priority={0}
-        coordinators={[]}
-        emailContacts={[]}
-        onSubmitSuccess={(detail) => console.log("Success:", detail)}
-        onSubmitError={(error) => console.error("Error:", error)}
-      />
-    </>
-  );
+    return (
+        <>
+            {/* app content */}
+            <SupportWidget
+                projectId='NPP'
+                isDev={false}
+                priority={0}
+                coordinators={[]}
+                emailContacts={[]}
+                onSubmitSuccess={(detail) => console.log('Success:', detail)}
+                onSubmitError={(error) => console.error('Error:', error)}
+            />
+        </>
+    );
 }
 ```
 
@@ -135,50 +135,50 @@ export default function App() {
 
 ### `setConfig` / React props
 
-| Name            | Required | Default | Description                                                                                                            |
-| --------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `projectId`     | React: yes · WC: no | — | Project code forwarded to the API. If set, must be a non-empty string.                                                 |
-| `isDev`         | No       | `false` | `true` → Development API; otherwise Production                                                                         |
-| `priority`      | No       | —       | Request priority. Sent only when set (number).                                                                         |
-| `coordinators`  | No       | `[]`    | Coordinator email list                                                                                                 |
-| `emailContacts` | No       | `[]`    | Contact emails that receive the notification                                                                           |
-| `toastDuration` | No       | `4000`  | Toast auto-close delay in ms. Number, or `{ success?: number, error?: number }`                                        |
-| `zIndex`        | No       | `10000` | CSS `z-index` of the floating widget. Omit to keep the default.                                                        |
+| Name            | Required            | Default | Description                                                                     |
+| --------------- | ------------------- | ------- | ------------------------------------------------------------------------------- |
+| `projectId`     | React: yes · WC: no | —       | Project code forwarded to the API. If set, must be a non-empty string.          |
+| `isDev`         | No                  | `false` | `true` → Development API; otherwise Production                                  |
+| `priority`      | No                  | —       | Request priority. Sent only when set (number).                                  |
+| `coordinators`  | No                  | `[]`    | Coordinator email list                                                          |
+| `emailContacts` | No                  | `[]`    | Contact emails that receive the notification                                    |
+| `toastDuration` | No                  | `4000`  | Toast auto-close delay in ms. Number, or `{ success?: number, error?: number }` |
+| `zIndex`        | No                  | `10000` | CSS `z-index` of the floating widget. Omit to keep the default.                 |
 
 ### Prefill (optional)
 
-| Name         | Method / prop                    | Description                                                                 |
-| ------------ | -------------------------------- | --------------------------------------------------------------------------- |
-| User         | `setUser` / `user`               | Prefills name, email, phone. Form UI still requires these fields on submit. |
+| Name         | Method / prop                    | Description                                                                         |
+| ------------ | -------------------------------- | ----------------------------------------------------------------------------------- |
+| User         | `setUser` / `user`               | Prefills name, email, phone. Form UI still requires these fields on submit.         |
 | Form content | `setFormPrefill` / `formPrefill` | Prefills `content` and `attachments` (array of **URL strings**; fetched on submit). |
 
 ```js
 // Web Component
 widget.setUser({
-  name: "Nguyen Van A",
-  email: "a@example.com",
-  phoneNumber: "0912345678",
+    name: 'Nguyen Van A',
+    email: 'a@example.com',
+    phoneNumber: '0912345678',
 });
 
 widget.setFormPrefill({
-  content: "Describe the issue...",
-  attachments: ["https://example.com/screenshot.png"],
+    content: 'Describe the issue...',
+    attachments: ['https://example.com/screenshot.png'],
 });
 ```
 
 ```tsx
 // React
 <SupportWidget
-  projectId="NPP"
-  user={{
-    name: "Nguyen Van A",
-    email: "a@example.com",
-    phoneNumber: "0912345678",
-  }}
-  formPrefill={{
-    content: "Describe the issue...",
-    attachments: ["https://example.com/screenshot.png"],
-  }}
+    projectId='NPP'
+    user={{
+        name: 'Nguyen Van A',
+        email: 'a@example.com',
+        phoneNumber: '0912345678',
+    }}
+    formPrefill={{
+        content: 'Describe the issue...',
+        attachments: ['https://example.com/screenshot.png'],
+    }}
 />
 ```
 
@@ -195,12 +195,12 @@ Default: **65×65px**, anchored **20px** from the bottom-right corner.
 Numeric values from React props are treated as pixels. After the user drags the launcher, the stored `localStorage` position takes precedence.
 
 ```js
-widget.setAttribute("right", "24");
-widget.setAttribute("bottom", "24");
+widget.setAttribute('right', '24');
+widget.setAttribute('bottom', '24');
 ```
 
 ```tsx
-<SupportWidget projectId="NPP" right={24} bottom={24} />
+<SupportWidget projectId='NPP' right={24} bottom={24} />
 ```
 
 ### Stacking order (`zIndex`)
@@ -208,44 +208,41 @@ widget.setAttribute("bottom", "24");
 Default: **10000**. Raise it if the widget sits under other overlays on the host page.
 
 ```js
-widget.setConfig({ projectId: "NPP", zIndex: 20000 });
+widget.setConfig({ projectId: 'NPP', zIndex: 20000 });
 // or: widget.setAttribute("z-index", "20000");
 ```
 
 ```tsx
-<SupportWidget projectId="NPP" zIndex={20000} />
+<SupportWidget projectId='NPP' zIndex={20000} />
 ```
 
 ### Submit feedback toast
 
 After a successful API submit or an API/exception failure, the widget shows a **centered toast** with the result message.
 
-| Behavior          | Detail                                                                                                |
-| ----------------- | ----------------------------------------------------------------------------------------------------- |
-| When shown        | Submit success, or API / runtime error                                                                |
-| When hidden       | Missing required fields (only inline field highlighting)                                              |
-| Auto-close        | After `toastDuration` ms (default `4000`). Pauses countdown on cursor hover.                          |
-| Copy actions      | Success toast: quick-copy for request code and lookup URL                                             |
-| Manual close      | User can dismiss via the `×` button                                                                   |
-| Success follow-up | Modal closes automatically after the success toast auto-closes (`toastDuration` / `success` value)    |
+| Behavior          | Detail                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| When shown        | Submit success, or API / runtime error                                                             |
+| When hidden       | Missing required fields (only inline field highlighting)                                           |
+| Auto-close        | After `toastDuration` ms (default `4000`). Pauses countdown on cursor hover.                       |
+| Copy actions      | Success toast: quick-copy for request code and lookup URL                                          |
+| Manual close      | User can dismiss via the `×` button                                                                |
+| Success follow-up | Modal closes automatically after the success toast auto-closes (`toastDuration` / `success` value) |
 
 `toastDuration` can be a single number (applies to both success/error) or structured with separate values:
 
 ```js
 widget.setConfig({
-  projectId: "NPP",
-  toastDuration: {
-    success: 3000, // closes success toast after 3s
-    error: 8000, // keeps error toast open for 8s
-  },
+    projectId: 'NPP',
+    toastDuration: {
+        success: 3000, // closes success toast after 3s
+        error: 8000, // keeps error toast open for 8s
+    },
 });
 ```
 
 ```tsx
-<SupportWidget
-  projectId="NPP"
-  toastDuration={{ success: 3000, error: 8000 }}
-/>
+<SupportWidget projectId='NPP' toastDuration={{ success: 3000, error: 8000 }} />
 ```
 
 ---
@@ -265,23 +262,23 @@ React equivalent props: `onOpen`, `onClose`, `onSubmitSuccess`, `onSubmitError`.
 
 ### Methods (Web Component)
 
-| Method                 | Description                                                            |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `setConfig(config)`    | Apply project / API settings                                           |
-| `setUser(user)`        | Prefill requester fields                                               |
-| `setFormPrefill(data)` | Prefill content / attachment URLs                                      |
-| `open()` / `close()`   | Open or close the modal                                                |
-| `showDemoToast(type)`  | Show a dummy toast for testing/dev (`"success"` or `"error"`)          |
+| Method                 | Description                                                   |
+| ---------------------- | ------------------------------------------------------------- |
+| `setConfig(config)`    | Apply project / API settings                                  |
+| `setUser(user)`        | Prefill requester fields                                      |
+| `setFormPrefill(data)` | Prefill content / attachment URLs                             |
+| `open()` / `close()`   | Open or close the modal                                       |
+| `showDemoToast(type)`  | Show a dummy toast for testing/dev (`"success"` or `"error"`) |
 
 ---
 
 ## Package entry points
 
-| Import                                 | Use when                                      |
-| -------------------------------------- | --------------------------------------------- |
-| `@namphuongtechnologi/np-hub/react`    | React apps (`SupportWidget`)                  |
-| `@namphuongtechnologi/np-hub/widget`   | Register `<np-hub>` in a bundler / vanilla JS |
-| `@namphuongtechnologi/np-hub`          | Types + `registerSupportWidget` / element     |
+| Import                               | Use when                                      |
+| ------------------------------------ | --------------------------------------------- |
+| `@namphuongtechnologi/np-hub/react`  | React apps (`SupportWidget`)                  |
+| `@namphuongtechnologi/np-hub/widget` | Register `<np-hub>` in a bundler / vanilla JS |
+| `@namphuongtechnologi/np-hub`        | Types + `registerSupportWidget` / element     |
 
 CDN users only need the `np-hub.min.global.js` script (auto-registers `<np-hub>`).
 
@@ -313,8 +310,8 @@ Use Production on live sites. Reserve Development for local / staging.
 
 ## More docs (shipped in the package)
 
-| Document                                         | Audience     |
-| ------------------------------------------------ | ------------ |
+| Document                                                     | Audience     |
+| ------------------------------------------------------------ | ------------ |
 | [`docs/USAGE_STATIC_REACT.md`](./docs/USAGE_STATIC_REACT.md) | Integrators  |
 | [`docs/DEVELOPER_GUIDE.md`](./docs/DEVELOPER_GUIDE.md)       | Contributors |
 | [`docs/PUBLIC_RELEASE.md`](./docs/PUBLIC_RELEASE.md)         | Maintainers  |
