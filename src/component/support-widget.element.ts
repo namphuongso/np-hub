@@ -21,6 +21,7 @@ import type {
 } from '../types/public';
 import { WIDGET_EVENTS } from './events/widget-events';
 import npSupportLogo from './assets/np-support-logo.png';
+import { formatCssUrl, resolveLauncherAsset } from './launcher-asset';
 import styles from './support-widget.styles.css';
 import markup from './support-widget.template.html';
 
@@ -70,6 +71,8 @@ export class SupportWidgetElement extends HTMLElement {
         'top',
         'toast-duration',
         'z-index',
+        'image',
+        'icon',
     ];
 
     private config: SupportWidgetConfig = {
@@ -118,7 +121,16 @@ export class SupportWidgetElement extends HTMLElement {
         this.clearToastCountdown();
     }
 
-    attributeChangedCallback(): void {
+    attributeChangedCallback(
+        name?: string,
+        _oldValue?: string | null,
+        newValue?: string | null,
+    ): void {
+        if (name === 'image' && newValue === null) {
+            delete this.config.image;
+        } else if (name === 'icon' && newValue === null) {
+            delete this.config.icon;
+        }
         this.syncConfigFromAttributes();
         this.prefillFromState();
         this.applyLauncherStyle();
@@ -192,6 +204,60 @@ export class SupportWidgetElement extends HTMLElement {
             }
             this.applyZIndexStyle();
         }
+        if ('image' in config) {
+            this.config.image = config.image;
+            if (config.image) {
+                this.setAttribute('image', config.image);
+            } else {
+                this.removeAttribute('image');
+            }
+            this.applyLauncherStyle();
+        }
+        if ('icon' in config) {
+            this.config.icon = config.icon;
+            if (config.icon) {
+                this.setAttribute('icon', config.icon);
+            } else {
+                this.removeAttribute('icon');
+            }
+            this.applyLauncherStyle();
+        }
+    }
+
+    get image(): string | undefined {
+        return this.config.image ?? this.getAttribute('image') ?? undefined;
+    }
+
+    set image(val: string | undefined) {
+        this.setImage(val);
+    }
+
+    get icon(): string | undefined {
+        return this.config.icon ?? this.getAttribute('icon') ?? undefined;
+    }
+
+    set icon(val: string | undefined) {
+        this.setIcon(val);
+    }
+
+    setImage(image?: string): void {
+        this.config.image = image;
+        if (image) {
+            this.setAttribute('image', image);
+        } else {
+            this.removeAttribute('image');
+        }
+        this.applyLauncherStyle();
+    }
+
+    setIcon(icon?: string): void {
+        this.config.icon = icon;
+        if (icon) {
+            this.setAttribute('icon', icon);
+        } else {
+            this.removeAttribute('icon');
+        }
+        this.applyLauncherStyle();
     }
 
     setFormPrefill(data: FormPrefillInput): void {
@@ -257,6 +323,16 @@ export class SupportWidgetElement extends HTMLElement {
             }
         }
 
+        const imageAttr = this.getAttribute('image');
+        if (imageAttr !== null) {
+            this.config.image = imageAttr;
+        }
+
+        const iconAttr = this.getAttribute('icon');
+        if (iconAttr !== null) {
+            this.config.icon = iconAttr;
+        }
+
         const toastDurationAttr = this.getAttribute('toast-duration');
         if (toastDurationAttr !== null) {
             const trimmed = toastDurationAttr.trim();
@@ -306,6 +382,13 @@ export class SupportWidgetElement extends HTMLElement {
             });
             this.setupDrag(launcher);
         }
+
+        const launcherSlot = root.querySelector<HTMLSlotElement>(
+            'slot[name="launcher-icon"]',
+        );
+        launcherSlot?.addEventListener('slotchange', () => {
+            this.applyLauncherStyle();
+        });
 
         root.getElementById('close-btn')?.addEventListener('click', () =>
             this.close(),
@@ -718,11 +801,65 @@ export class SupportWidgetElement extends HTMLElement {
         const launcher = this.shadowRoot?.getElementById('open-btn');
         if (!launcher) return;
 
-        const launcherStyles = [`--np-hub-icon: url("${npSupportLogo}")`];
+        const launcherInner = this.shadowRoot?.getElementById('launcher-inner');
+        const slot = this.shadowRoot?.querySelector<HTMLSlotElement>(
+            'slot[name="launcher-icon"]',
+        );
+
+        const launcherStyles: string[] = [];
         const width = this.normalizeSize(this.getAttribute('width'));
         const height = this.normalizeSize(this.getAttribute('height'));
         if (width) launcherStyles.push(`--np-hub-width: ${width}`);
         if (height) launcherStyles.push(`--np-hub-height: ${height}`);
+
+        const hasSlottedIcon = Boolean(
+            slot && slot.assignedNodes({ flatten: true }).length > 0,
+        );
+
+        const resolved = resolveLauncherAsset(
+            this.config.image ?? this.getAttribute('image') ?? undefined,
+            this.config.icon ?? this.getAttribute('icon') ?? undefined,
+            npSupportLogo,
+            hasSlottedIcon,
+        );
+
+        if (resolved.source === 'image') {
+            if (slot) slot.style.display = 'none';
+            if (launcherInner) launcherInner.innerHTML = '';
+            if (resolved.isMarkup) {
+                if (launcherInner) {
+                    launcherInner.innerHTML = resolved.value;
+                    if (slot) slot.style.display = '';
+                }
+                launcherStyles.push('--np-hub-icon: none');
+            } else {
+                launcherStyles.push(
+                    `--np-hub-icon: ${formatCssUrl(resolved.value)}`,
+                );
+                launcherStyles.push(`--np-hub-icon-size: ${resolved.size}`);
+            }
+        } else if (hasSlottedIcon) {
+            if (slot) slot.style.display = '';
+            if (launcherInner) launcherInner.innerHTML = '';
+            launcherStyles.push('--np-hub-icon: none');
+        } else if (resolved.source === 'icon') {
+            if (slot) slot.style.display = '';
+            if (resolved.isMarkup) {
+                if (launcherInner) launcherInner.innerHTML = resolved.value;
+                launcherStyles.push('--np-hub-icon: none');
+            } else {
+                if (launcherInner) launcherInner.innerHTML = '';
+                launcherStyles.push(
+                    `--np-hub-icon: ${formatCssUrl(resolved.value)}`,
+                );
+                launcherStyles.push(`--np-hub-icon-size: ${resolved.size}`);
+            }
+        } else {
+            if (slot) slot.style.display = '';
+            if (launcherInner) launcherInner.innerHTML = '';
+            launcherStyles.push(`--np-hub-icon: url("${npSupportLogo}")`);
+            launcherStyles.push('--np-hub-icon-size: 75%');
+        }
 
         launcher.setAttribute('style', `${launcherStyles.join('; ')};`);
     }

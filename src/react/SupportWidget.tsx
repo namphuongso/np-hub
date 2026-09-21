@@ -1,4 +1,4 @@
-import { createElement, useEffect, useState } from "react";
+import { createElement, useEffect, useState, type ReactNode } from "react";
 import type { SupportWidgetElement } from "../component/support-widget.element";
 import { WIDGET_EVENTS } from "../component/events/widget-events";
 import { registerSupportWidget } from "../register";
@@ -24,6 +24,10 @@ export interface SupportWidgetProps {
   bottom?: string | number;
   left?: string | number;
   top?: string | number;
+  /** Custom image URL or markup for the launcher button. Takes precedence over `icon`. */
+  image?: string;
+  /** Custom icon (e.g. `<Icon />`, SVG, or URL) for the launcher button. */
+  icon?: ReactNode;
   user?: SupportUserPrefill;
   formPrefill?: SupportSubmissionInput;
   onSubmitSuccess?: (detail: unknown) => void;
@@ -46,6 +50,8 @@ export function SupportWidget({
   bottom,
   left,
   top,
+  image,
+  icon,
   user,
   formPrefill,
   onSubmitSuccess,
@@ -55,6 +61,11 @@ export function SupportWidget({
 }: SupportWidgetProps) {
   const [mounted, setMounted] = useState(false);
   const [widgetEl, setWidgetEl] = useState<SupportWidgetElement | null>(null);
+
+  const hasImage = Boolean(image && image.trim());
+  const isStringIcon = typeof icon === "string";
+  const showSlottedIcon =
+    !hasImage && icon !== undefined && icon !== null && !isStringIcon;
 
   useEffect(() => {
     setMounted(true);
@@ -70,6 +81,8 @@ export function SupportWidget({
       emailContacts,
       toastDuration,
       zIndex,
+      image,
+      icon: isStringIcon ? icon : undefined,
     });
   }, [
     widgetEl,
@@ -80,6 +93,8 @@ export function SupportWidget({
     emailContacts,
     toastDuration,
     zIndex,
+    image,
+    isStringIcon ? icon : undefined,
   ]);
 
   useEffect(() => {
@@ -138,15 +153,38 @@ export function SupportWidget({
     return null;
   }
 
-  return createElement("np-hub", {
-    ref: setWidgetEl,
-    "project-id": projectId,
-    ...(isDev ? { "is-dev": true } : {}),
-    ...(width !== undefined ? { width } : {}),
-    ...(height !== undefined ? { height } : {}),
-    ...(right !== undefined ? { right } : {}),
-    ...(bottom !== undefined ? { bottom } : {}),
-    ...(left !== undefined ? { left } : {}),
-    ...(top !== undefined ? { top } : {}),
-  });
+  return createElement(
+    "np-hub",
+    {
+      ref: setWidgetEl,
+      "project-id": projectId,
+      ...(isDev ? { "is-dev": true } : {}),
+      ...(width !== undefined ? { width } : {}),
+      ...(height !== undefined ? { height } : {}),
+      ...(right !== undefined ? { right } : {}),
+      ...(bottom !== undefined ? { bottom } : {}),
+      ...(left !== undefined ? { left } : {}),
+      ...(top !== undefined ? { top } : {}),
+      ...(image !== undefined ? { image } : {}),
+      ...(isStringIcon ? { icon } : {}),
+    },
+    showSlottedIcon
+      ? createElement(
+          "span",
+          {
+            slot: "launcher-icon",
+            style: {
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              fontSize: "28px",
+            },
+          },
+          icon,
+        )
+      : null,
+  );
 }
