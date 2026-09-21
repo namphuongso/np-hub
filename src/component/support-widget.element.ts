@@ -86,6 +86,7 @@ export class SupportWidgetElement extends HTMLElement {
     private selectedFiles: File[] = [];
     private prefilledAttachments: string[] = [];
     private previewUrls: string[] = [];
+    private isUploadZoneOpen = false;
     private closeAfterSuccessTimer: number | null = null;
     private toastCountdownInterval: number | null = null;
     private toastSuccessDuration = 4000;
@@ -420,6 +421,13 @@ export class SupportWidgetElement extends HTMLElement {
         this.setupClearableInputs();
 
         // File selection UI handlers
+        const uploadToggleBtn = root.getElementById('upload-toggle-btn');
+        if (uploadToggleBtn) {
+            uploadToggleBtn.addEventListener('click', () => {
+                this.toggleUploadZone();
+            });
+        }
+
         const uploadTrigger = root.getElementById('upload-trigger');
         const fileInput = root.getElementById(
             'file-input',
@@ -469,6 +477,30 @@ export class SupportWidgetElement extends HTMLElement {
         this.setupToastCopy();
         this.setupClipboardPaste();
         this.setupPreviewControls();
+    }
+
+    private setUploadZoneOpen(open: boolean): void {
+        this.isUploadZoneOpen = open;
+        const root = this.shadowRoot;
+        if (!root) return;
+        const uploadTrigger = root.getElementById('upload-trigger');
+        const toggleBtn = root.getElementById('upload-toggle-btn');
+        if (uploadTrigger) {
+            uploadTrigger.classList.toggle('is-open', open);
+        }
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('is-open', open);
+            toggleBtn.setAttribute('aria-expanded', String(open));
+            toggleBtn.setAttribute(
+                'aria-label',
+                open ? 'Đóng vùng tải lên tệp' : 'Mở vùng tải lên tệp',
+            );
+            toggleBtn.title = open ? 'Đóng vùng tải lên' : 'Thêm file đính kèm';
+        }
+    }
+
+    private toggleUploadZone(): void {
+        this.setUploadZoneOpen(!this.isUploadZoneOpen);
     }
 
     private setupPreviewControls(): void {
@@ -1325,6 +1357,7 @@ export class SupportWidgetElement extends HTMLElement {
         this.prefilledAttachments = [];
         this.renderFileList();
         this.closePreview();
+        this.setUploadZoneOpen(false);
     }
 
     private async submit(): Promise<void> {

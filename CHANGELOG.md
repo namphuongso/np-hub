@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-09-21
+
+### Added
+
+- Collapsible attachment upload zone:
+  - Added plus (`+`) toggle button positioned at the end of the "File đính kèm" label row to open/close the upload dropzone.
+  - Smooth 45-degree rotation animation turning plus (`+`) to close (`×`) when active.
+  - Automatic form reset returning upload zone to closed state.
+
+---
+
 ## [0.2.6] - 2026-09-21
 
 ### Added
