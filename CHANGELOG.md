@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-09-21
+
+### Added
+
+- Custom launcher button image and icon support:
+  - Web Component `<np-hub>`: added `image` and `icon` attributes and property setters (`setImage`, `setIcon`), supporting URLs or inline SVG/HTML markup, plus `<slot name="launcher-icon">` for custom icon elements.
+  - React wrapper `<SupportWidget>`: added `image` and `icon` props supporting image URLs, SVG markup, or custom `ReactNode` icons with automatic slot projection.
+  - Asset resolution mechanism prioritizing `image` (cover) over `icon` / slotted icon over default logo fallback.
+- Unit test suite for launcher asset resolution and CSS URL formatting (`tests/unit/launcher-asset.test.ts`).
+
+---
+
 ## [0.2.5] - 2026-09-17
 
 ### Added
