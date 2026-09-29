@@ -168,23 +168,25 @@ export function SupportWidget({
       ...(image !== undefined ? { image } : {}),
       ...(isStringIcon ? { icon } : {}),
     },
-    showSlottedIcon
-      ? createElement(
-          "span",
-          {
-            slot: "launcher-icon",
-            style: {
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-              fontSize: "28px",
+    ...(showSlottedIcon
+      ? [
+          createElement(
+            "span",
+            {
+              slot: "launcher-icon",
+              style: {
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+                fontSize: "28px",
+              },
             },
-          },
-          icon,
-        )
-      : null,
+            icon,
+          ),
+        ]
+      : []),
   );
 }

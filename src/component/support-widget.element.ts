@@ -844,9 +844,17 @@ export class SupportWidgetElement extends HTMLElement {
         if (width) launcherStyles.push(`--np-hub-width: ${width}`);
         if (height) launcherStyles.push(`--np-hub-height: ${height}`);
 
-        const hasSlottedIcon = Boolean(
-            slot && slot.assignedNodes({ flatten: true }).length > 0,
-        );
+        const assignedNodes = slot ? slot.assignedNodes() : [];
+        const hasSlottedIcon = assignedNodes.some((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) return true;
+            if (
+                node.nodeType === Node.TEXT_NODE &&
+                Boolean(node.textContent?.trim())
+            ) {
+                return true;
+            }
+            return false;
+        });
 
         const resolved = resolveLauncherAsset(
             this.config.image ?? this.getAttribute('image') ?? undefined,
@@ -887,9 +895,9 @@ export class SupportWidgetElement extends HTMLElement {
                 launcherStyles.push(`--np-hub-icon-size: ${resolved.size}`);
             }
         } else {
-            if (slot) slot.style.display = '';
+            if (slot) slot.style.display = 'none';
             if (launcherInner) launcherInner.innerHTML = '';
-            launcherStyles.push(`--np-hub-icon: url("${npSupportLogo}")`);
+            launcherStyles.push(`--np-hub-icon: ${formatCssUrl(npSupportLogo)}`);
             launcherStyles.push('--np-hub-icon-size: 75%');
         }
 
