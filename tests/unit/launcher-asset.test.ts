@@ -95,6 +95,22 @@ describe('resolveLauncherAsset', () => {
         });
     });
 
+    it('falls back to default logo when hasSlottedIcon is false and neither image nor icon is provided', () => {
+        const result = resolveLauncherAsset(
+            undefined,
+            undefined,
+            DEFAULT_LOGO,
+            false,
+        );
+
+        expect(result).toEqual({
+            source: 'default',
+            isMarkup: false,
+            value: DEFAULT_LOGO,
+            size: '75%',
+        });
+    });
+
     it('falls back to default logo when both image and icon are whitespace', () => {
         const result = resolveLauncherAsset('  ', '', DEFAULT_LOGO);
 

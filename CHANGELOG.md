@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-09-29
+
+### Fixed
+
+- Default launcher logo not displaying when `image` or `icon` is omitted:
+  - Corrected `hasSlottedIcon` detection in `<np-hub>` Web Component by checking unflattened assigned nodes, preventing the internal fallback content from being falsely recognized as an assigned icon.
+  - Properly hide the icon slot and apply the default logo background image when neither `image` nor `icon` is specified.
+  - Optimized React wrapper `<SupportWidget>` to only pass children to `createElement` when a slotted icon is present.
+  - Added unit test verifying fallback to default logo when `hasSlottedIcon` is `false`.
+
+---
+
 ## [0.2.7] - 2026-09-21
 
 ### Added
