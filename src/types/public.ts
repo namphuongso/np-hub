@@ -15,6 +15,10 @@ export interface SupportWidgetConfig {
     toastDuration?: number | { success?: number; error?: number };
     /** Stacking order of the widget. Defaults to `10000` when omitted. */
     zIndex?: number;
+    /** Custom image URL or markup for the launcher button. Takes precedence over `icon`. */
+    image?: string;
+    /** Custom icon URL or SVG/HTML markup for the launcher button. */
+    icon?: string;
 }
 
 export interface SupportSubmissionInput {
